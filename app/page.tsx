@@ -83,7 +83,7 @@ export default function HomePage() {
       setAnalysis(body as ListAnalysis);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to connect to the AI service.";
-      if (message.includes("OPENAI_API_KEY") || message.includes("AI is not configured")) {
+      if (message.includes("LLM_API_KEY") || message.includes("AI is not configured")) {
         setAnalysis(analyzeLocally(rawList, Number.isFinite(parsedBudget) ? parsedBudget : 0, purpose));
         setAnalysisError("AI API not configured — showing a clearly labelled local rules preview instead.");
       } else setAnalysisError(message);
@@ -102,7 +102,7 @@ export default function HomePage() {
       <div className="workspace-label">WORKSPACE</div>
       <nav className="nav-list" aria-label="Main navigation">{nav.map(({ name, icon: Icon }) => <button key={name} className={`nav-item ${section === name ? "active" : ""}`} onClick={() => { setSection(name); setMobileNavOpen(false); }}><Icon size={18}/><span>{name}</span>{name === "Smart list" && <span className="nav-count">{items.length}</span>}</button>)}</nav>
       <div className="sidebar-spacer"/>
-      <div className="sidebar-tip"><div className="tip-icon"><Heart size={17}/></div><div className="tip-title">Thoughtful doesn't mean expensive.</div><p>The best plans make room for what matters to you.</p><button onClick={() => { setSection("Smart list"); setPurpose("A thoughtful surprise"); }}>Plan a small surprise <ChevronRight size={14}/></button></div>
+      <div className="sidebar-tip"><div className="tip-icon"><Heart size={17}/></div><div className="tip-title">Thoughtful doesn&apos;t mean expensive.</div><p>The best plans make room for what matters to you.</p><button onClick={() => { setSection("Smart list"); setPurpose("A thoughtful surprise"); }}>Plan a small surprise <ChevronRight size={14}/></button></div>
       <div className="profile"><div className="avatar">S</div><div className="profile-text"><strong>Your workspace</strong><span>Personal planner · local mode</span></div><Settings2 size={17} className="muted-icon"/></div>
     </aside>
     {mobileNavOpen && <button className="mobile-scrim" aria-label="Close navigation overlay" onClick={() => setMobileNavOpen(false)}/>}

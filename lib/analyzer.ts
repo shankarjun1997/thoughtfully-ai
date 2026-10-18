@@ -27,6 +27,6 @@ export function analyzeLocally(input: string, budget: number, purpose: string): 
     summary: `Local rules preview for ${purpose || "your plan"}: ${parsed.length} item(s) reviewed${duplicateCount ? `, including ${duplicateCount} possible duplicate(s)` : ""}. This is not an AI assessment.`,
     totalEstimated: total, budgetStatus, recommendations, missingEssentials: [],
     savingsTips: ["Check what you already own before buying.", "Compare unit prices and avoid buying in bulk unless you will use it."],
-    caveats: ["Rules-only preview: configure OPENAI_API_KEY to enable contextual AI recommendations.", "No item is marked unnecessary solely from its name; verify ritual requirements and personal needs."], mode: "rules"
+    caveats: ["Rules-only preview: configure LLM_API_KEY to enable contextual AI recommendations.", "No item is marked unnecessary solely from its name; verify ritual requirements and personal needs."], mode: "rules"
   };
 }

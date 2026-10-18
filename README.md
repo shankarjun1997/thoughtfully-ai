@@ -2,13 +2,13 @@
 
 A mobile-friendly Next.js starter for thoughtful Indian occasion planning, shopping-list review, budgets, DIY ideas, and a calendar that can switch between Gregorian and Panchang modes.
 
-> **Current status:** MVP source scaffold. The UI and local rules preview work without external credentials. The OpenAI API route is implemented but requires a server-side API key. Supabase schema is ready to apply, but authentication, cloud persistence, and Panchang/holiday data are not configured by default. Starter calendar events are clearly example data.
+> **Current status:** MVP source scaffold. The UI and local rules preview work without external credentials. The DeepSeek-backed analysis route is implemented but requires a server-side API key. Supabase schema is ready to apply, but authentication, cloud persistence, and Panchang/holiday data are not configured by default. Starter calendar events are clearly example data.
 
 ## Features
 
 - Responsive dashboard with shopping checklist, spending summary, and upcoming events.
 - Smart-list screen with purpose, budget, region, and pasted item list.
-- Server-side OpenAI Responses API integration with Zod input validation, structured JSON output, `store: false`, bounded input sizes, and no API key in client code.
+- Server-side DeepSeek chat-completions integration via the OpenAI-compatible SDK, with Zod input/output validation, structured JSON output, bounded input sizes, and no API key in client code.
 - Clearly labelled local rules preview if the AI key is not configured; this can detect possible duplicates and calculate totals only when all prices are provided.
 - Gregorian month/year calendar, personal event creation/deletion, search, and a Panchang-mode switch that explicitly discloses missing Panchang data.
 - Browser-local persistence for starter events and checklist; Supabase SQL migration and optional client helper included for the next persistence/auth milestone.
@@ -18,7 +18,7 @@ A mobile-friendly Next.js starter for thoughtful Indian occasion planning, shopp
 
 - Node.js 20.9+ (Node 22 LTS recommended)
 - npm
-- Optional: OpenAI API key for AI analysis
+- Optional: DeepSeek (or OpenAI-compatible) API key for AI analysis
 - Optional: Supabase project for authenticated cloud storage
 
 ## Run locally
@@ -29,14 +29,15 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open http://localhost:3000. Without `OPENAI_API_KEY`, the list-review screen will fall back to a visibly labelled local rules preview.
+Open http://localhost:3000. Without `LLM_API_KEY`, the list-review screen will fall back to a visibly labelled local rules preview.
 
 ## Environment variables
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `OPENAI_API_KEY` | For AI analysis | Server-only model credential. Never prefix with `NEXT_PUBLIC_`. |
-| `OPENAI_MODEL` | No | Model name; defaults to `gpt-4.1-mini`. |
+| `LLM_API_KEY` | For AI analysis | Server-only DeepSeek credential. Never prefix with `NEXT_PUBLIC_`. |
+| `LLM_BASE_URL` | No | OpenAI-compatible base URL; defaults to `https://api.deepseek.com`. |
+| `LLM_MODEL` | No | Model name; defaults to `deepseek-chat`. |
 | `NEXT_PUBLIC_SUPABASE_URL` | For Supabase | Project URL. |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | For Supabase | Public/anon key, protected by RLS policies. |
 | `SUPABASE_SERVICE_ROLE_KEY` | No | Reserved for trusted server-side jobs only; never expose to browser. |
@@ -45,7 +46,7 @@ Do not commit `.env.local` or real secrets.
 
 ## AI route
 
-`POST /api/analyze-list` accepts JSON `{ "items": "...", "purpose": "...", "budget": 1500, "region": "Tamil Nadu", "ownedItems": [] }`. It validates the request, calls the OpenAI Responses API from the server, requests a strict JSON schema, disables response storage, and returns a structured analysis. Missing API configuration returns HTTP 503. The API route has bounded input size but should additionally receive authenticated-user quotas, rate limiting, and abuse monitoring before public launch.
+`POST /api/analyze-list` accepts JSON `{ "items": "...", "purpose": "...", "budget": 1500, "region": "Tamil Nadu", "ownedItems": [] }`. It validates the request, calls the DeepSeek chat completions API from the server, requests JSON output, validates the result against a Zod schema, and returns a structured analysis. Missing API configuration returns HTTP 503. The API route has bounded input size but should additionally receive authenticated-user quotas, rate limiting, and abuse monitoring before public launch.
 
 ## Supabase setup
 
@@ -72,7 +73,7 @@ npm run build
 
 1. Push the repository to GitHub.
 2. Import the repository into Vercel.
-3. Set server-side `OPENAI_API_KEY` and optional `OPENAI_MODEL` in Project Settings → Environment Variables.
+3. Set server-side `LLM_API_KEY` and optional `LLM_BASE_URL` / `LLM_MODEL` in Project Settings → Environment Variables.
 4. Configure Supabase variables only after creating the project and applying the migration.
 5. Deploy a preview first; test mobile layout, API error paths, privacy, and database RLS before promoting to production.
 
