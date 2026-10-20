@@ -1,3 +1,4 @@
+import path from "node:path";
 import OpenAI from "openai";
 
 export type CapturedImage = { buffer: Buffer; mime: string };
@@ -23,7 +24,13 @@ async function visionOcr(image: CapturedImage): Promise<string> {
 
 async function tesseractOcr(images: CapturedImage[]): Promise<string[]> {
   const { createWorker } = await import("tesseract.js");
-  const worker = await createWorker("eng", 1, { cachePath: "/tmp", logger: () => {} });
+  const worker = await createWorker("eng", 1, {
+    cachePath: "/tmp",
+    cacheMethod: "none",
+    langPath: path.join(process.cwd(), "tessdata"),
+    gzip: true,
+    logger: () => {},
+  });
   try {
     const results: string[] = [];
     for (const image of images) {
