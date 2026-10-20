@@ -9,6 +9,7 @@ A mobile-friendly Next.js starter for thoughtful Indian occasion planning, shopp
 - Responsive dashboard with shopping checklist, spending summary, and upcoming events.
 - Smart-list screen with purpose, budget, region, and pasted item list.
 - Server-side DeepSeek chat-completions integration via the OpenAI-compatible SDK, with Zod input/output validation, structured JSON output, bounded input sizes, and no API key in client code.
+- Instagram post/reel import: capture slides or a screenshot, OCR the text, and turn it into a checklist and action plan.
 - Clearly labelled local rules preview if the AI key is not configured; this can detect possible duplicates and calculate totals only when all prices are provided.
 - Gregorian month/year calendar, personal event creation/deletion, search, and a Panchang-mode switch that explicitly discloses missing Panchang data.
 - Browser-local persistence for starter events and checklist; Supabase SQL migration and optional client helper included for the next persistence/auth milestone.
@@ -38,6 +39,11 @@ Open http://localhost:3000. Without `LLM_API_KEY`, the list-review screen will f
 | `LLM_API_KEY` | For AI analysis | Server-only DeepSeek credential. Never prefix with `NEXT_PUBLIC_`. |
 | `LLM_BASE_URL` | No | OpenAI-compatible base URL; defaults to `https://api.deepseek.com`. |
 | `LLM_MODEL` | No | Model name; defaults to `deepseek-chat`. |
+| `BROWSERLESS_TOKEN` | For link import fallback | Screenshot API token used when Instagram slides cannot be fetched directly. |
+| `BROWSERLESS_URL` | No | Browserless base URL; defaults to `https://production-sfo.browserless.io`. |
+| `VISION_API_KEY` | No | OpenAI-compatible vision key for higher-accuracy OCR. Falls back to Tesseract. |
+| `VISION_BASE_URL` | No | Vision API base URL; defaults to `https://api.openai.com/v1`. |
+| `VISION_MODEL` | No | Vision model; defaults to `gpt-4o-mini`. |
 | `NEXT_PUBLIC_SUPABASE_URL` | For auth + workspaces | Supabase project URL. |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | For auth + workspaces | Public/anon key, protected by RLS policies. |
 | `SUPABASE_SERVICE_ROLE_KEY` | No | Reserved for trusted server-side jobs only; never expose to browser. |
@@ -58,6 +64,18 @@ The app ships with Supabase email/password authentication, protected routes, and
 - Users can switch or create workspaces from the sidebar; the active workspace is stored in an httpOnly cookie.
 - Lists and events in the browser are namespaced per workspace (`thoughtfully-items-v2:ws:<id>`), so switching never mixes tenants.
 - When Supabase env vars are absent, the app stays usable in a clearly labelled local mode and `/login` shows setup instructions. Once configured, middleware redirects signed-out visitors to `/login`.
+
+## Instagram link import
+
+Paste a public Instagram post or reel link in Smart list and the app will:
+
+1. Read the embed caption and carousel slide images.
+2. Fall back to a Browserless screenshot when slide images cannot be fetched.
+3. OCR the slides (local Tesseract, or a vision model when configured).
+4. Ask DeepSeek to produce an editable checklist plus an action plan.
+5. Let the user add the actions to their calendar.
+
+Set `BROWSERLESS_TOKEN` for screenshot capture. Optional vision OCR is enabled with `VISION_API_KEY` (and `VISION_BASE_URL` / `VISION_MODEL`); otherwise Tesseract runs in the serverless function. Only public posts work, Instagram may rate-limit repeated fetches, and reel audio is not transcribed yet — the caption and on-screen text are used.
 
 ## Supabase setup
 
