@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, Check, ChevronLeft, ChevronRight, CircleHelp, ClipboardCheck, Clock3, Flower2, Gift, Heart, House, Leaf, ListChecks, Menu, Plus, Search, Settings2, ShoppingBasket, Sparkles, Wallet, X } from "lucide-react";
+import { CalendarDays, Check, ChevronLeft, ChevronRight, CircleHelp, ClipboardCheck, Clock3, Flower2, Gift, Heart, House, Leaf, ListChecks, Menu, Plus, Search, ShoppingBasket, Sparkles, Wallet, X } from "lucide-react";
 import { analyzeLocally } from "@/lib/analyzer";
+import WorkspaceMenu, { type SessionData } from "@/components/WorkspaceMenu";
 import type { ListAnalysis, PlannerEvent, ShoppingItem } from "@/lib/types";
 
 type Section = "Overview" | "Smart list" | "Calendar" | "My occasions";
@@ -50,19 +51,38 @@ export default function HomePage() {
   const [showEventForm, setShowEventForm] = useState(false);
   const [search, setSearch] = useState("");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [hydrated, setHydrated] = useState(false);
+  const [session, setSession] = useState<SessionData | null>(null);
+  const [scope, setScope] = useState("local");
+  const [hydratedScope, setHydratedScope] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      const savedItems = localStorage.getItem("thoughtfully-items-v1");
-      const savedEvents = localStorage.getItem("thoughtfully-events-v1");
-      if (savedItems) setItems(JSON.parse(savedItems));
-      if (savedEvents) setEvents(JSON.parse(savedEvents));
-    } catch { /* Ignore malformed local drafts; defaults remain usable. */ }
-    setHydrated(true);
+    let cancelled = false;
+    fetch("/api/session")
+      .then(async (response) => {
+        const body = await response.json().catch(() => null);
+        if (cancelled || !body) return;
+        setSession(body as SessionData);
+        if (body.activeWorkspaceId) setScope(`ws:${body.activeWorkspaceId}`);
+      })
+      .catch(() => { /* Local mode remains usable if session lookup fails. */ });
+    return () => { cancelled = true; };
   }, []);
-  useEffect(() => { if (hydrated) localStorage.setItem("thoughtfully-items-v1", JSON.stringify(items)); }, [items, hydrated]);
-  useEffect(() => { if (hydrated) localStorage.setItem("thoughtfully-events-v1", JSON.stringify(events)); }, [events, hydrated]);
+
+  useEffect(() => {
+    setHydratedScope(null);
+    try {
+      const savedItems = localStorage.getItem(`thoughtfully-items-v2:${scope}`) ?? (scope === "local" ? localStorage.getItem("thoughtfully-items-v1") : null);
+      const savedEvents = localStorage.getItem(`thoughtfully-events-v2:${scope}`) ?? (scope === "local" ? localStorage.getItem("thoughtfully-events-v1") : null);
+      setItems(savedItems ? JSON.parse(savedItems) : initialList);
+      setEvents(savedEvents ? JSON.parse(savedEvents) : starterEvents);
+    } catch {
+      setItems(initialList);
+      setEvents(starterEvents);
+    }
+    setHydratedScope(scope);
+  }, [scope]);
+  useEffect(() => { if (hydratedScope === scope) localStorage.setItem(`thoughtfully-items-v2:${scope}`, JSON.stringify(items)); }, [items, scope, hydratedScope]);
+  useEffect(() => { if (hydratedScope === scope) localStorage.setItem(`thoughtfully-events-v2:${scope}`, JSON.stringify(events)); }, [events, scope, hydratedScope]);
 
   const total = items.reduce((sum, item) => sum + (item.price ?? 0), 0);
   const completed = items.filter((item) => item.checked).length;
@@ -130,7 +150,7 @@ export default function HomePage() {
       <nav className="nav-list" aria-label="Main navigation">{nav.map(({ name, icon: Icon }) => <button key={name} className={`nav-item ${section === name ? "active" : ""}`} onClick={() => { setSection(name); setMobileNavOpen(false); }}><Icon size={18}/><span>{name}</span>{name === "Smart list" && <span className="nav-count">{items.length}</span>}</button>)}</nav>
       <div className="sidebar-spacer"/>
       <div className="sidebar-tip"><div className="tip-icon"><Heart size={17}/></div><div className="tip-title">Thoughtful doesn&apos;t mean expensive.</div><p>The best plans make room for what matters to you.</p><button onClick={() => { setSection("Smart list"); setPurpose("A thoughtful surprise"); }}>Plan a small surprise <ChevronRight size={14}/></button></div>
-      <div className="profile"><div className="avatar">S</div><div className="profile-text"><strong>Your workspace</strong><span>Personal planner · local mode</span></div><Settings2 size={17} className="muted-icon"/></div>
+      <WorkspaceMenu session={session} />
     </aside>
     {mobileNavOpen && <button className="mobile-scrim" aria-label="Close navigation overlay" onClick={() => setMobileNavOpen(false)}/>}
     <section className="main-panel">

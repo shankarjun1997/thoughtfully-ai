@@ -18,3 +18,24 @@
 .item-remove{width:26px;height:26px;flex-shrink:0;color:#9ca195}
 .item-remove:hover{color:#7a3f3f;background:#f8eeee}
 @media(max-width:680px){.check-row{flex-wrap:wrap;gap:7px}.check-name{flex:1 1 100%;order:2;padding-left:26px;margin-top:-6px}.check-toggle{order:1}.qty-input,.rate-input,.item-remove{order:3}.qty-input{width:62px}.rate-input{flex:1;min-width:96px}.rate-input input{width:100%}}
+
+/* Workspace switcher */
+.workspace-menu{border-top:1px solid var(--line);padding:14px 4px 0;margin-top:8px}
+.workspace-menu-head{display:flex;align-items:center;gap:9px}
+.workspace-menu-head .profile-text{min-width:0}
+.workspace-menu-head .profile-text strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.workspace-menu-head .profile-text span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.workspace-icon-link{width:26px;height:26px;border:1px solid #e8ebe2;background:#fff;border-radius:7px;color:#7d8579;display:grid;place-items:center;flex-shrink:0}
+.workspace-icon-link:hover{background:#f4f6ef;color:#516647}
+.workspace-switch{display:grid;gap:5px;margin-top:11px}
+.workspace-switch span{font-size:8px;letter-spacing:1.2px;font-weight:700;color:#9aa095}
+.workspace-switch select{width:100%;border:1px solid #e4e7dd;background:#fff;border-radius:7px;padding:8px 9px;font-size:10px;color:#4d5747;outline:none}
+.workspace-switch select:focus{border-color:#9cac8d;box-shadow:0 0 0 3px #eaf0e4}
+.workspace-new{margin-top:10px;display:grid;gap:7px}
+.workspace-new .text-input{padding:8px 9px;font-size:10px}
+.workspace-new-actions{display:flex;align-items:center;gap:9px}
+.workspace-new-actions .secondary-button{padding:7px 10px;font-size:9px}
+.workspace-error{font-size:8.5px;line-height:1.55;color:#a35d51;margin:8px 0 0}
+.workspace-signout{margin-top:9px}
+.workspace-signout button{border:0;background:transparent;color:#8b9186;font-size:9px;font-weight:600;display:inline-flex;align-items:center;gap:5px;padding:4px 0}
+.workspace-signout button:hover{color:#5a6c50}

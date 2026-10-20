@@ -38,8 +38,8 @@ Open http://localhost:3000. Without `LLM_API_KEY`, the list-review screen will f
 | `LLM_API_KEY` | For AI analysis | Server-only DeepSeek credential. Never prefix with `NEXT_PUBLIC_`. |
 | `LLM_BASE_URL` | No | OpenAI-compatible base URL; defaults to `https://api.deepseek.com`. |
 | `LLM_MODEL` | No | Model name; defaults to `deepseek-chat`. |
-| `NEXT_PUBLIC_SUPABASE_URL` | For Supabase | Project URL. |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | For Supabase | Public/anon key, protected by RLS policies. |
+| `NEXT_PUBLIC_SUPABASE_URL` | For auth + workspaces | Supabase project URL. |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | For auth + workspaces | Public/anon key, protected by RLS policies. |
 | `SUPABASE_SERVICE_ROLE_KEY` | No | Reserved for trusted server-side jobs only; never expose to browser. |
 
 Do not commit `.env.local` or real secrets.
@@ -48,12 +48,24 @@ Do not commit `.env.local` or real secrets.
 
 `POST /api/analyze-list` accepts JSON `{ "items": "...", "purpose": "...", "budget": 1500, "region": "Tamil Nadu", "ownedItems": [] }`. It validates the request, calls the DeepSeek chat completions API from the server, requests JSON output, validates the result against a Zod schema, and returns a structured analysis. Missing API configuration returns HTTP 503. The API route has bounded input size but should additionally receive authenticated-user quotas, rate limiting, and abuse monitoring before public launch.
 
+## Authentication and multi-tenancy
+
+The app ships with Supabase email/password authentication, protected routes, and workspace-based tenancy.
+
+- `/login` has sign-in and "Create workspace" flows.
+- New accounts automatically receive an owner workspace through a database trigger.
+- `/api/session` returns the signed-in user, their workspaces, and the active workspace.
+- Users can switch or create workspaces from the sidebar; the active workspace is stored in an httpOnly cookie.
+- Lists and events in the browser are namespaced per workspace (`thoughtfully-items-v2:ws:<id>`), so switching never mixes tenants.
+- When Supabase env vars are absent, the app stays usable in a clearly labelled local mode and `/login` shows setup instructions. Once configured, middleware redirects signed-out visitors to `/login`.
+
 ## Supabase setup
 
 1. Create a Supabase project.
-2. Apply `supabase/migrations/202610180001_initial_schema.sql` in the SQL editor or with the Supabase CLI.
+2. Apply `supabase/migrations/202610180001_initial_schema.sql`, then `supabase/migrations/202610190001_multi_tenant.sql`, in the SQL editor or with the Supabase CLI.
 3. Add the project URL and anon key to `.env.local` / deployment environment.
-4. Implement sign-in and server-side ownership checks before using the schema for real users. RLS policies are included, but this starter does not yet ship a complete authenticated persistence flow.
+4. In Supabase Auth → URL Configuration, set the Site URL to your deployed origin and add `<origin>/auth/callback` as a redirect URL.
+5. Sign up through `/login`; the trigger creates the first workspace automatically.
 
 ## Calendar and Panchang accuracy
 
@@ -74,7 +86,7 @@ npm run build
 1. Push the repository to GitHub.
 2. Import the repository into Vercel.
 3. Set server-side `LLM_API_KEY` and optional `LLM_BASE_URL` / `LLM_MODEL` in Project Settings → Environment Variables.
-4. Configure Supabase variables only after creating the project and applying the migration.
+4. Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`, then apply both migrations to enable the multi-tenant login.
 5. Deploy a preview first; test mobile layout, API error paths, privacy, and database RLS before promoting to production.
 
 ## Suggested milestones

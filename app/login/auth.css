@@ -1,0 +1,54 @@
+.auth-page{min-height:100vh;display:grid;place-items:center;padding:28px;background:radial-gradient(circle at 12% 12%,#eef1e6 0,transparent 42%),radial-gradient(circle at 88% 88%,#f7efe5 0,transparent 40%),var(--bg)}
+.auth-shell{width:min(1080px,100%);min-height:660px;display:grid;grid-template-columns:1.04fr .96fr;background:#fff;border:1px solid var(--line);border-radius:24px;overflow:hidden;box-shadow:0 30px 80px rgba(45,53,37,.1)}
+.auth-brand{position:relative;overflow:hidden;padding:44px 46px;display:flex;flex-direction:column;justify-content:space-between;gap:32px;color:#f3f5ec;background:linear-gradient(150deg,#3d5036 0%,#516846 55%,#687e58 100%)}
+.auth-brand::before,.auth-brand::after{content:"";position:absolute;border-radius:50%;pointer-events:none}
+.auth-brand::before{width:340px;height:340px;right:-130px;top:-120px;background:radial-gradient(circle,#f6f0df33,transparent 68%)}
+.auth-brand::after{width:300px;height:300px;left:-150px;bottom:-150px;border:1px solid #ffffff1f}
+.auth-logo{display:inline-flex;align-items:center;gap:11px;color:#fff;text-decoration:none;position:relative;z-index:1;width:fit-content}
+.auth-logo-mark{width:38px;height:38px;border-radius:12px;background:#ffffff1c;border:1px solid #ffffff2e;display:grid;place-items:center;color:#eef1e2}
+.auth-logo-text{font-size:20px;font-weight:700;letter-spacing:-.8px}
+.auth-logo-text span{font-size:9px;letter-spacing:.4px;background:#ffffff21;border:1px solid #ffffff2d;border-radius:5px;padding:3px 5px;margin-left:5px;vertical-align:middle}
+.auth-brand-copy{position:relative;z-index:1;max-width:430px}
+.auth-eyebrow{display:flex;align-items:center;gap:8px;font-size:9px;letter-spacing:1.8px;font-weight:700;color:#dce4d1}
+.auth-eyebrow span{width:20px;height:1px;background:#c6d3b8;display:inline-block}
+.auth-brand h1{font-size:38px;line-height:1.14;letter-spacing:-1.6px;font-weight:500;margin:17px 0 15px;color:#fbfcf7}
+.auth-brand h1 em{font-family:'Playfair Display',Georgia,serif;color:#efe2c8;font-weight:500}
+.auth-brand-copy>p{font-size:12px;line-height:1.85;color:#dbe2d2;margin:0;max-width:390px}
+.auth-benefits{list-style:none;display:grid;gap:11px;margin:26px 0 0;padding:0}
+.auth-benefits li{display:flex;gap:11px;align-items:flex-start;background:#ffffff10;border:1px solid #ffffff1f;border-radius:12px;padding:11px 12px;backdrop-filter:blur(2px)}
+.auth-benefit-icon{width:28px;height:28px;border-radius:9px;background:#ffffff1c;display:grid;place-items:center;flex-shrink:0;color:#eaf0e1}
+.auth-benefits strong{display:block;font-size:10.5px;letter-spacing:.1px;color:#f8faf4}
+.auth-benefits small{display:block;font-size:9.5px;line-height:1.6;color:#ccd6c2;margin-top:3px}
+.auth-quote{position:relative;z-index:1;margin:0;font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:13px;color:#e4ddc9}
+.auth-panel{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:14px;padding:42px 44px;background:#fff}
+.auth-card{width:100%;max-width:386px}
+.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:4px;background:#f4f5ef;border-radius:10px;margin-bottom:25px}
+.auth-tabs button{border:0;background:transparent;border-radius:7px;padding:9px 10px;font-size:11px;font-weight:600;color:#7b8276;transition:background .15s,color .15s}
+.auth-tabs button.selected{background:#fff;color:#41543a;box-shadow:0 1px 4px #29351f14}
+.auth-card-heading h2{font-family:'Playfair Display',Georgia,serif;font-size:26px;font-weight:500;letter-spacing:-.6px;margin:0 0 8px;color:#2f362c}
+.auth-card-heading p{font-size:10.5px;line-height:1.75;color:#8a9085;margin:0 0 21px}
+.auth-field{display:block;margin-bottom:14px}
+.auth-field>span{display:block;font-size:10px;font-weight:700;color:#5f665a;margin-bottom:7px}
+.auth-input{display:flex;align-items:center;gap:8px;border:1px solid #e4e7dd;border-radius:9px;padding:0 12px;background:#fff;transition:border-color .15s,box-shadow .15s}
+.auth-input:focus-within{border-color:#9cac8d;box-shadow:0 0 0 3px #eaf0e4}
+.auth-input svg{color:#a0a69a;flex-shrink:0}
+.auth-input input{flex:1;min-width:0;border:0;outline:0;background:transparent;padding:12px 0;font-size:11.5px;color:#3b4137}
+.auth-input input::placeholder{color:#b0b5aa}
+.auth-message{border-radius:8px;padding:10px 11px;font-size:10px;line-height:1.65;margin-bottom:13px}
+.auth-message.error{background:#fbf0ee;border:1px solid #f0d9d3;color:#8f4c40}
+.auth-message.success{background:#f0f5eb;border:1px solid #dde8d3;color:#4d6842}
+.auth-submit{width:100%;height:43px;border:0;border-radius:9px;background:#4c6044;color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.1px;transition:background .15s,transform .15s}
+.auth-submit:hover{background:#3f5238;transform:translateY(-1px)}
+.auth-fineprint{font-size:9.5px;line-height:1.7;color:#9aa095;margin:17px 0 0;text-align:center}
+.auth-local-link{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:#5e7352;text-decoration:none;padding:7px 10px;border-radius:7px}
+.auth-local-link:hover{background:#f2f5ed}
+.auth-legal{max-width:360px;text-align:center;font-size:8.5px;line-height:1.7;color:#b0b5ab;margin:0}
+.auth-setup-icon{width:44px;height:44px;border-radius:13px;background:#eef2e8;color:#5c7350;display:grid;place-items:center;margin-bottom:16px}
+.auth-setup-list{list-style:none;padding:0;margin:15px 0;display:grid;gap:8px}
+.auth-setup-list li{font-size:10px;color:#6f756b;background:#f7f8f4;border:1px solid #eceee6;border-radius:7px;padding:8px 10px}
+.auth-setup-list code,.auth-setup-note code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;color:#4c6044;overflow-wrap:anywhere}
+.auth-setup-list span{color:#9aa095}
+.auth-setup-note{font-size:9.5px;line-height:1.75;color:#8a9085;margin:0}
+.spinner.dark{border-color:#ffffff55;border-top-color:#fff}
+@media(max-width:900px){.auth-shell{grid-template-columns:1fr;min-height:0}.auth-brand{padding:30px 30px 26px;gap:20px}.auth-brand h1{font-size:29px;margin:12px 0 10px}.auth-brand-copy>p{max-width:none}.auth-benefits{grid-template-columns:1fr;margin-top:18px}.auth-quote{display:none}.auth-panel{padding:32px 26px 26px}}
+@media(max-width:520px){.auth-page{padding:0}.auth-shell{border-radius:0;border:0;min-height:100vh}.auth-brand{border-radius:0;padding:26px 22px 22px}.auth-benefits li:nth-child(3){display:none}.auth-panel{padding:28px 22px 30px}.auth-tabs{margin-bottom:20px}.auth-card-heading h2{font-size:23px}}
