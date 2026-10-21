@@ -19,6 +19,7 @@ const checklistSchema = z.object({
     name: z.string(),
     quantity: z.string().nullable().optional(),
     estimatedPrice: z.number().nullable(),
+    category: z.string().max(60),
     note: z.string().nullable().optional(),
   })).min(1),
   caveats: z.array(z.string()),
@@ -30,11 +31,12 @@ const outputSchema = {
     summary: { type: "string" },
     items: {
       type: "array", minItems: 1, items: {
-        type: "object", additionalProperties: false, required: ["name", "quantity", "estimatedPrice", "note"],
+        type: "object", additionalProperties: false, required: ["name", "quantity", "estimatedPrice", "category", "note"],
         properties: {
           name: { type: "string" },
           quantity: { type: ["string", "null"] },
           estimatedPrice: { type: ["number", "null"] },
+          category: { type: "string", enum: ["Pooja & rituals", "Food & groceries", "Decor & flowers", "Gifts & return gifts", "Household & cleaning", "Clothing & accessories", "Equipment & rentals", "Venue & logistics", "Invites & printing", "Other"] },
           note: { type: ["string", "null"] },
         },
       },
@@ -43,7 +45,7 @@ const outputSchema = {
   },
 } as const;
 
-const instructions = "You are Thoughtfully, a careful Indian shopping and occasion planning assistant. Turn rough keywords, notes, or a loose description into a practical, well-organised shopping checklist. Use Indian retail context and INR. Give a sensible quantity for each item (for example '500 g', '2 packets', '1 set') and a realistic indicative rate in INR for that quantity. Prices are estimates only; never imply live prices or availability. Keep the list focused on the stated occasion and budget, avoid duplicates, and omit items the user clearly already owns. Prefer locally available, practical options. For pooja or ritual lists, respect family, temple, priest, and regional tradition; where requirements vary, add a short note asking the user to confirm instead of asserting. Do not add unsafe or wasteful items. Respond with a single json object that matches this JSON schema exactly: " + JSON.stringify(outputSchema);
+const instructions = "You are Thoughtfully, a careful Indian shopping and occasion planning assistant. Turn rough keywords, notes, or a loose description into a practical, well-organised shopping checklist. Use Indian retail context and INR. Give a sensible quantity for each item (for example '500 g', '2 packets', '1 set'), a realistic indicative rate in INR for that quantity, and one category from the provided enum. Group related items with the same category. Prices are estimates only; never imply live prices or availability. Keep the list focused on the stated occasion and budget, avoid duplicates, and omit items the user clearly already owns. Prefer locally available, practical options. For pooja or ritual lists, respect family, temple, priest, and regional tradition; where requirements vary, add a short note asking the user to confirm instead of asserting. Do not add unsafe or wasteful items. Respond with a single json object that matches this JSON schema exactly: " + JSON.stringify(outputSchema);
 
 const apiKey = process.env.LLM_API_KEY || process.env.DEEPSEEK_API_KEY;
 

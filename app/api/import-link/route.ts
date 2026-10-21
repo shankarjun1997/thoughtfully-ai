@@ -17,6 +17,7 @@ const resultSchema = z.object({
     name: z.string(),
     quantity: z.string().nullable().optional(),
     estimatedPrice: z.number().nullable().optional(),
+    category: z.string().max(60),
     note: z.string().nullable().optional(),
   })).min(1),
   actions: z.array(z.object({
@@ -33,11 +34,12 @@ const outputSchema = {
     summary: { type: "string" },
     checklist: {
       type: "array", minItems: 1, items: {
-        type: "object", additionalProperties: false, required: ["name", "quantity", "estimatedPrice", "note"],
+        type: "object", additionalProperties: false, required: ["name", "quantity", "estimatedPrice", "category", "note"],
         properties: {
           name: { type: "string" },
           quantity: { type: ["string", "null"] },
           estimatedPrice: { type: ["number", "null"] },
+          category: { type: "string", enum: ["Pooja & rituals", "Food & groceries", "Decor & flowers", "Gifts & return gifts", "Household & cleaning", "Clothing & accessories", "Equipment & rentals", "Venue & logistics", "Invites & printing", "Other"] },
           note: { type: ["string", "null"] },
         },
       },
@@ -56,7 +58,7 @@ const outputSchema = {
   },
 } as const;
 
-const instructions = "You are Thoughtfully, a careful Indian planning assistant. Read the supplied Instagram caption and OCR text from its slides or screenshot, then extract a practical shopping checklist and an action plan. Use only information present in the supplied text; OCR may contain errors, so correct obvious misspellings but do not invent products, brands, prices or steps. Turn ingredients, materials, products, quantities and supplies mentioned in the post into checklist items. Give a sensible quantity when stated or clearly implied, otherwise null. If a price is explicitly shown, use it; otherwise give a realistic indicative INR estimate and mark it as an estimate by putting 'Estimated rate' in the note. Turn every preparation step, instruction or task in the post into an action with a short timeframe when stated (for example 'Day before', 'Morning of'), otherwise null. Keep the checklist and actions focused and de-duplicated. If the post is not a checklist or plan, summarise it and derive only the actions a reader would reasonably take, with caveats. Respond with a single json object that matches this JSON schema exactly: " + JSON.stringify(outputSchema);
+const instructions = "You are Thoughtfully, a careful Indian planning assistant. Read the supplied Instagram caption and OCR text from its slides or screenshot, then extract a practical shopping checklist and an action plan. Use only information present in the supplied text; OCR may contain errors, so correct obvious misspellings but do not invent products, brands, prices or steps. Turn ingredients, materials, products, quantities and supplies mentioned in the post into checklist items, each assigned one category from the provided enum. Give a sensible quantity when stated or clearly implied, otherwise null. If a price is explicitly shown, use it; otherwise give a realistic indicative INR estimate and mark it as an estimate by putting 'Estimated rate' in the note. Turn every preparation step, instruction or task in the post into an action with a short timeframe when stated (for example 'Day before', 'Morning of'), otherwise null. Keep the checklist and actions focused and de-duplicated. If the post is not a checklist or plan, summarise it and derive only the actions a reader would reasonably take, with caveats. Respond with a single json object that matches this JSON schema exactly: " + JSON.stringify(outputSchema);
 
 const llmKey = process.env.LLM_API_KEY || process.env.DEEPSEEK_API_KEY;
 
