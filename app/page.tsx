@@ -207,7 +207,7 @@ export default function HomePage() {
       });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || "Could not prepare a checklist.");
-      const checklist: ShoppingItem[] = (body.checklist as Array<{ name: string; quantity?: string | null; estimatedPrice?: number | null }>).map((item) => ({
+      const checklist: ShoppingItem[] = (body.items as Array<{ name: string; quantity?: string | null; estimatedPrice?: number | null }>).map((item) => ({
         id: crypto.randomUUID(),
         name: item.name,
         price: typeof item.estimatedPrice === "number" ? item.estimatedPrice : undefined,
