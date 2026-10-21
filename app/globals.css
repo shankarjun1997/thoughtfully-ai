@@ -59,3 +59,33 @@
 .action-time{display:inline-block;margin-top:5px;font-size:8px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:#7c8b6f;background:#edf1e8;border-radius:5px;padding:3px 6px}
 .import-plan-actions{display:flex;align-items:center;gap:13px;margin-top:13px;flex-wrap:wrap}
 @media(max-width:680px){.import-row{flex-wrap:wrap}.import-row .secondary-button{width:100%}}
+
+/* Holidays, event checklists and reminders */
+.legend-dot.holiday{background:#c8a77b}
+.legend-dot.national{background:#c47a5c}
+.legend-dot.festival{background:#d5b386}
+.calendar-holiday-dot{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#f8efe3;color:#95683f;padding:2px 4px;border-radius:4px;font-size:7.5px;width:100%;line-height:1.4}
+.calendar-day.has-holiday{background:#fdf9f3}
+.day-holiday-card{display:flex;align-items:flex-start;gap:9px;padding:10px 11px;border:1px solid #f0e4d4;background:#fdf8f1;border-radius:8px;margin-bottom:8px}
+.day-holiday-card strong{font-size:10px;color:#6d5138}
+.day-holiday-card p{font-size:9px;color:#a18363;margin:3px 0 0}
+.agenda-holidays{border-top:1px solid #f0f1eb;margin-top:10px;padding-top:12px}
+.agenda-holidays-head{display:flex;align-items:center;justify-content:space-between;font-size:8px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;color:#9aa095;margin-bottom:4px}
+.agenda-holidays-head span:last-child{background:#f7f0e5;color:#a7825c;border-radius:5px;padding:2px 6px;letter-spacing:0}
+.agenda-holiday{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #f5f2ea}
+.agenda-holiday:last-child{border-bottom:0}
+.agenda-holiday strong{display:block;font-size:9.5px;color:#5d5145}
+.agenda-holiday span{display:block;font-size:8.5px;color:#a1927e;margin-top:2px}
+.event-checklist-link{border:0;background:#f2f5ed;color:#61754f;border-radius:5px;padding:4px 6px;font-size:8px;font-weight:700;display:inline-flex;align-items:center;gap:4px;margin-top:6px}
+.event-checklist-link:hover{background:#e8eedf}
+.event-checklist-link:disabled{opacity:.6}
+.calendar-reminder-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:-4px 0 12px}
+.reminder-toggle{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.reminder-button{display:inline-flex;align-items:center;gap:6px;border:1px solid #e2e6da;background:#fff;color:#5b6b51;border-radius:7px;padding:7px 10px;font-size:9.5px;font-weight:700}
+.reminder-button:hover{background:#f5f7f0}
+.reminder-button.on{background:#eef3e8;border-color:#dbe6d0;color:#4e6644}
+.reminder-test{width:28px;height:28px;border:1px solid #e2e6da;background:#fff;border-radius:7px;color:#6d7d62;display:grid;place-items:center}
+.reminder-test:hover{background:#f5f7f0}
+.reminder-message{font-size:8.5px;line-height:1.5;color:#8a9085;max-width:460px}
+.spin-icon{animation:spin 1s linear infinite}
+.agenda-detail .event-checklist-link{margin-top:5px}

@@ -54,6 +54,14 @@ Do not commit `.env.local` or real secrets.
 
 `POST /api/analyze-list` accepts JSON `{ "items": "...", "purpose": "...", "budget": 1500, "region": "Tamil Nadu", "ownedItems": [] }`. It validates the request, calls the DeepSeek chat completions API from the server, requests JSON output, validates the result against a Zod schema, and returns a structured analysis. Missing API configuration returns HTTP 503. The API route has bounded input size but should additionally receive authenticated-user quotas, rate limiting, and abuse monitoring before public launch.
 
+## Calendar, holidays and reminders
+
+- The calendar includes a curated India holiday/festival list for 2026–2027 (`lib/holidays.ts`). Dates are planning guides, not Panchang authority.
+- Each event has a **Prepare checklist** action that generates an AI checklist and opens it in Smart list.
+- **Enable reminders** requests browser notification permission, stores the push subscription in Supabase, and creates one-day-before reminders at 9:00 AM IST.
+- A daily Vercel cron (`vercel.json` → `/api/cron/reminders`) sends due reminders through Web Push. Set `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `CRON_SECRET` and `SUPABASE_SECRET_KEY`.
+- iOS requires adding the app to the Home Screen before web push works.
+
 ## Authentication and multi-tenancy
 
 The app ships with Supabase email/password authentication, protected routes, and workspace-based tenancy.
