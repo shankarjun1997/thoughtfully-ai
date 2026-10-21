@@ -102,23 +102,23 @@ export default function LoginForm({ configured, next, initialError }: { configur
           <>
             <label className="auth-field" htmlFor="fullName">
               <span>Your name</span>
-              <div className="auth-input"><User size={15} /><input id="fullName" autoComplete="name" required maxLength={120} value={fullName} onChange={(event) => setFullName(event.target.value)} placeholder="Shankar Arjunan" /></div>
+              <div className="auth-input"><User size={15} /><input id="fullName" autoComplete="name" enterKeyHint="next" required maxLength={120} value={fullName} onChange={(event) => setFullName(event.target.value)} placeholder="Shankar Arjunan" /></div>
             </label>
             <label className="auth-field" htmlFor="workspaceName">
               <span>Workspace name</span>
-              <div className="auth-input"><Building2 size={15} /><input id="workspaceName" required maxLength={120} value={workspaceName} onChange={(event) => setWorkspaceName(event.target.value)} placeholder="Our family plans" /></div>
+              <div className="auth-input"><Building2 size={15} /><input id="workspaceName" enterKeyHint="next" required maxLength={120} value={workspaceName} onChange={(event) => setWorkspaceName(event.target.value)} placeholder="Our family plans" /></div>
             </label>
           </>
         )}
 
         <label className="auth-field" htmlFor="email">
           <span>Email address</span>
-          <div className="auth-input"><Mail size={15} /><input id="email" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" /></div>
+          <div className="auth-input"><Mail size={15} /><input id="email" type="email" inputMode="email" autoCapitalize="none" autoCorrect="off" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" /></div>
         </label>
 
         <label className="auth-field" htmlFor="password">
           <span>Password</span>
-          <div className="auth-input"><Lock size={15} /><input id="password" type="password" autoComplete={mode === "signin" ? "current-password" : "new-password"} required minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} placeholder={mode === "signin" ? "Your password" : "At least 8 characters"} /></div>
+          <div className="auth-input"><Lock size={15} /><input id="password" type="password" autoCapitalize="none" autoComplete={mode === "signin" ? "current-password" : "new-password"} required minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} placeholder={mode === "signin" ? "Your password" : "At least 8 characters"} /></div>
         </label>
 
         {error && <div className="auth-message error" role="alert">{error}</div>}

@@ -6,8 +6,9 @@ export const metadata: Metadata = {
   description: "A thoughtful AI companion for Indian occasions, shopping lists, budgets and everyday planning.",
   applicationName: "Thoughtfully",
   manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "Thoughtfully" },
 };
-export const viewport: Viewport = { themeColor: "#f7f7f2", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#4c6044", width: "device-width", initialScale: 1, viewportFit: "cover" };
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="en"><body>{children}</body></html>;
 }
