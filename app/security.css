@@ -28,6 +28,9 @@
 .security-primary:hover:not(:disabled){background:#3f5238}
 .security-skip{border:0;background:transparent;color:#8a9085;font-size:10px;font-weight:600;padding:8px 4px}
 .security-skip:hover{color:#5a6c50}
+.security-signout{margin:0}
+.security-signout button{border:0;background:transparent;color:#8a9085;font-size:10px;font-weight:600;padding:8px 4px;text-decoration:underline}
+.security-signout button:hover{color:#5a6c50}
 .security-footer{border-top:1px solid #f0f1eb;margin:16px 0 0;padding-top:11px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:9px;color:#9aa095}
 .security-footer a{color:#5a714c;font-weight:700;text-decoration:none}
 .security-footer a:hover{text-decoration:underline}

@@ -9,6 +9,7 @@ export function getSecurityConfig() {
   const retentionDays = Math.min(positiveInt(process.env.SESSION_VERIFICATION_RETENTION_DAYS, DEFAULT_RETENTION_DAYS), 365);
   return {
     verificationEnabled: process.env.SESSION_VERIFICATION_ENABLED !== "false",
+    required: process.env.SESSION_VERIFICATION_REQUIRED === "true",
     retentionDays,
     validHours: VERIFICATION_VALID_HOURS,
     alertEmail: process.env.SECURITY_ALERT_EMAIL?.trim() || "",

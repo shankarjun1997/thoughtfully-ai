@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import DeleteVerificationsButton from "@/components/DeleteVerificationsButton";
-import { SESSION_CONSENT_POINTS } from "@/lib/security/consent";
+import { sessionConsentPoints } from "@/lib/security/consent";
 import { getSecurityConfig } from "@/lib/security/config";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -50,7 +50,7 @@ export default async function SecurityPage() {
     .limit(25);
 
   const rows = (data ?? []) as VerificationRow[];
-  const retentionDays = getSecurityConfig().retentionDays;
+  const config = getSecurityConfig();
 
   return (
     <main className="security-page">
@@ -66,12 +66,14 @@ export default async function SecurityPage() {
         </div>
 
         <p className="security-page-intro">
-          Session checks are optional. A photo is captured only after you press “Turn on camera” and agree to share it with the workspace administrator.
-          Photos are kept privately for {retentionDays} days and then deleted automatically.
+          {config.required
+            ? "Session verification is required to use this workspace. A photo is captured only after you press “Turn on camera” and agree to share it with the workspace administrator. You may sign out instead."
+            : "Session checks are optional. A photo is captured only after you press “Turn on camera” and agree to share it with the workspace administrator."}
+          {" "}Photos are kept privately for {config.retentionDays} days and then deleted automatically.
         </p>
 
         <ul className="security-points">
-          {SESSION_CONSENT_POINTS.map((point) => <li key={point}>{point}</li>)}
+          {sessionConsentPoints(config.required).map((point) => <li key={point}>{point}</li>)}
         </ul>
 
         <div className="security-history">

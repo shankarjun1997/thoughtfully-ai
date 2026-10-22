@@ -5,9 +5,11 @@ import Link from "next/link";
 import { ArrowRight, Camera, Check, Loader2, ShieldCheck, X } from "lucide-react";
 import type { SessionData } from "@/components/WorkspaceMenu";
 import { DEVICE_ID_STORAGE_KEY, DISMISSED_STORAGE_KEY, VERIFIED_STORAGE_KEY } from "@/lib/security/consent";
+import { shouldPromptVerification } from "@/lib/security/prompt";
 
 type VerificationInfo = {
   enabled: boolean;
+  required: boolean;
   due: boolean;
   consentVersion: string;
   consentPoints: string[];
@@ -82,9 +84,13 @@ export default function SecurityCheck({ session }: { session: SessionData | null
         if (!response.ok || !body?.verification) return;
         const verification = body.verification as VerificationInfo;
         setInfo(verification);
-        if (verification.due && !readSessionFlag(DISMISSED_STORAGE_KEY) && !readSessionFlag(VERIFIED_STORAGE_KEY)) {
-          setOpen(true);
-        }
+        setOpen(shouldPromptVerification({
+          enabled: verification.enabled,
+          required: verification.required,
+          due: verification.due,
+          dismissed: readSessionFlag(DISMISSED_STORAGE_KEY),
+          verified: readSessionFlag(VERIFIED_STORAGE_KEY),
+        }));
       })
       .catch(() => null);
   }, [session]);
@@ -95,10 +101,19 @@ export default function SecurityCheck({ session }: { session: SessionData | null
     videoRef.current.play().catch(() => null);
   }, [status]);
 
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previous; };
+  }, [open]);
+
   async function startCamera() {
     setError("");
     if (!navigator.mediaDevices?.getUserMedia) {
-      setError("This browser cannot access a camera. You can skip verification.");
+      setError(info?.required
+        ? "This browser cannot access a camera, but verification is required to continue. Try a supported browser, or sign out."
+        : "This browser cannot access a camera. You can skip verification.");
       return;
     }
     try {
@@ -109,7 +124,9 @@ export default function SecurityCheck({ session }: { session: SessionData | null
       streamRef.current = stream;
       setStatus("camera");
     } catch {
-      setError("Camera access was blocked or unavailable. You can review the notice and skip for now.");
+      setError(info?.required
+        ? "Camera access is required to continue. Allow camera access in your browser settings and try again, or sign out."
+        : "Camera access was blocked or unavailable. You can review the notice and skip for now.");
     }
   }
 
@@ -125,7 +142,7 @@ export default function SecurityCheck({ session }: { session: SessionData | null
     canvas.height = Math.round(video.videoHeight * scale);
     const context = canvas.getContext("2d");
     if (!context) {
-      setError("Could not capture the photo. You can skip verification.");
+      setError("Could not capture the photo. Please try again.");
       return;
     }
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -156,6 +173,7 @@ export default function SecurityCheck({ session }: { session: SessionData | null
   }
 
   function dismiss() {
+    if (info?.required) return;
     stopCamera();
     writeSessionFlag(DISMISSED_STORAGE_KEY);
     setOpen(false);
@@ -165,16 +183,24 @@ export default function SecurityCheck({ session }: { session: SessionData | null
 
   if (!open || !info) return null;
 
+  const signOutForm = (
+    <form action="/auth/signout" method="post" className="security-signout">
+      <button type="submit">Sign out instead</button>
+    </form>
+  );
+
   return (
     <div className="security-overlay">
       <div className="security-card" role="dialog" aria-modal="true" aria-labelledby="security-title">
         <div className="security-head">
           <div className="security-icon"><ShieldCheck size={20} /></div>
           <div className="security-heading">
-            <p className="security-eyebrow">ACCOUNT SAFETY · CONSENT REQUIRED</p>
+            <p className="security-eyebrow">{info.required ? "ACCOUNT SAFETY · VERIFICATION REQUIRED" : "ACCOUNT SAFETY · OPTIONAL CHECK"}</p>
             <h2 id="security-title">{status === "done" ? "This device is verified" : "Verify this device"}</h2>
           </div>
-          <button type="button" className="security-close" onClick={dismiss} aria-label="Close and skip verification"><X size={17} /></button>
+          {!info.required && (
+            <button type="button" className="security-close" onClick={dismiss} aria-label="Close and skip verification"><X size={17} /></button>
+          )}
         </div>
 
         {status === "done" ? (
@@ -185,7 +211,11 @@ export default function SecurityCheck({ session }: { session: SessionData | null
         ) : (
           <>
             <p className="security-intro">
-              Help the workspace owner confirm this sign-in is really you. Nothing is captured until you press <strong>Turn on camera</strong>, and you can skip at any time.
+              {info.required ? (
+                <>Verification is required to use this workspace. Confirm this sign-in is really you — nothing is captured until you press <strong>Turn on camera</strong>. You can sign out instead if you do not want to continue.</>
+              ) : (
+                <>Help the workspace owner confirm this sign-in is really you. Nothing is captured until you press <strong>Turn on camera</strong>, and you can skip at any time.</>
+              )}
             </p>
 
             <ul className="security-points">
@@ -229,7 +259,7 @@ export default function SecurityCheck({ session }: { session: SessionData | null
               {status === "idle" && (
                 <>
                   <button type="button" className="security-primary" disabled={!consent} onClick={startCamera}><Camera size={15} /> Turn on camera</button>
-                  <button type="button" className="security-skip" onClick={dismiss}>Not now</button>
+                  {info.required ? signOutForm : <button type="button" className="security-skip" onClick={dismiss}>Not now</button>}
                 </>
               )}
               {status === "camera" && (
@@ -242,7 +272,7 @@ export default function SecurityCheck({ session }: { session: SessionData | null
                 <>
                   <button type="button" className="security-primary" disabled={!consent} onClick={sendVerification}>Send verification <ArrowRight size={15} /></button>
                   <button type="button" className="security-skip" onClick={() => { setPhoto(null); setStatus("idle"); startCamera(); }}>Retake</button>
-                  <button type="button" className="security-skip" onClick={dismiss}>Not now</button>
+                  {info.required ? signOutForm : <button type="button" className="security-skip" onClick={dismiss}>Not now</button>}
                 </>
               )}
               {status === "sending" && (
@@ -253,9 +283,15 @@ export default function SecurityCheck({ session }: { session: SessionData | null
         )}
 
         <p className="security-footer">
-          <Link href="/security">Manage verification history</Link>
-          <span>·</span>
-          <span>Photos are never captured in the background.</span>
+          {info.required ? (
+            <span>Required to continue · Signing out is always available · Photos are never captured in the background.</span>
+          ) : (
+            <>
+              <Link href="/security">Manage verification history</Link>
+              <span>·</span>
+              <span>Photos are never captured in the background.</span>
+            </>
+          )}
         </p>
       </div>
     </div>

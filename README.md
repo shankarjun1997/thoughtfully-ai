@@ -52,6 +52,7 @@ Open http://localhost:3000. Without `LLM_API_KEY`, the list-review screen will f
 | `SECURITY_ALERT_EMAIL` | For security emails | Administrator inbox that receives alerts and photos. |
 | `SECURITY_ALERT_FROM` | For security emails | Verified Resend sender, e.g. `Thoughtfully Security <security@yourdomain.com>`. |
 | `SESSION_VERIFICATION_ENABLED` | No | Set to `false` to hide the camera prompt (device alerts still send). Defaults to enabled. |
+| `SESSION_VERIFICATION_REQUIRED` | No | Set to `true` to make verification mandatory: the dialog blocks the app, and “Not now”/close are removed. |
 | `SESSION_VERIFICATION_RETENTION_DAYS` | No | Photo retention before the daily cleanup cron deletes them. Defaults to 30. |
 
 Do not commit `.env.local` or real secrets.
@@ -81,13 +82,14 @@ The app ships with Supabase email/password authentication, protected routes, and
 
 ## Consent-based session verification
 
-This is an **opt-in** safety check, not background surveillance. The browser never requests camera access on its own: the prompt appears after sign-in, explains what is shared, and requires a checkbox plus an explicit **Turn on camera** press. Audio is never requested.
+This is a **consent-based** safety check, optionally mandatory. The browser never requests camera access on its own: the prompt appears after sign-in, explains what is shared, and requires a checkbox plus an explicit **Turn on camera** press. Audio is never requested.
 
 - `POST /api/security/session` records the device and emails `SECURITY_ALERT_EMAIL` when a browser signs in for the first time. No photo is involved.
 - `POST /api/security/verification` accepts one JPEG/PNG/WebP still, verifies the consent version, stores it in the private `session-verifications` bucket, and emails it to `SECURITY_ALERT_EMAIL` with a 7-day signed link plus an attachment.
 - `GET /api/security/verification` lists the caller's own consent history; `DELETE` removes their photos and records.
 - `/security` shows the user their verification history, retention window, and a delete-all control.
-- `verify` only appears once per device per `VERIFICATION_VALID_HOURS` (24h). **Not now** dismisses it for the browser session.
+- `verify` appears once per device per `VERIFICATION_VALID_HOURS` (24h), or once per browser session when `SESSION_VERIFICATION_REQUIRED=true`. **Not now** dismisses it for the browser session in optional mode; in required mode the dialog has no skip or close, blocks scrolling, and offers **Sign out instead**.
+- Because required mode makes the check a condition of access, disclose it in your terms/privacy policy and confirm it is lawful in your jurisdiction (in some regions, camera capture cannot be a condition of service without a genuine alternative).
 - `POST /api/cron/security` (daily Vercel cron) deletes photos older than `SESSION_VERIFICATION_RETENTION_DAYS` and device rows idle for 180 days.
 - Enable it by applying `supabase/migrations/202610220001_session_security.sql` (creates the tables and private bucket) and setting the `RESEND_*` / `SECURITY_*` variables.
 

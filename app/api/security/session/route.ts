@@ -4,7 +4,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSecurityConfig } from "@/lib/security/config";
-import { SESSION_CONSENT_POINTS, SESSION_CONSENT_VERSION } from "@/lib/security/consent";
+import { sessionConsentPoints, SESSION_CONSENT_VERSION } from "@/lib/security/consent";
 import { sendSecurityEmail } from "@/lib/security/email";
 import { describeRequest, formatSecurityLocation, normalizeDeviceId } from "@/lib/security/request";
 
@@ -114,6 +114,7 @@ export async function POST(request: Request) {
 
   const admin = createSupabaseAdminClient();
   const deliverable = Boolean(admin && config.resendApiKey && config.alertEmail);
+  const enabled = config.verificationEnabled && deliverable;
   const lastVerifiedAt = (latest?.created_at as string | undefined) ?? null;
   const verificationFresh = lastVerifiedAt
     ? Date.now() - new Date(lastVerifiedAt).getTime() < config.validHours * 60 * 60 * 1000
@@ -124,10 +125,11 @@ export async function POST(request: Request) {
     isNewDevice,
     alertDelivered,
     verification: {
-      enabled: config.verificationEnabled && deliverable,
-      due: config.verificationEnabled && deliverable && !verificationFresh,
+      enabled,
+      required: enabled && config.required,
+      due: enabled && !verificationFresh,
       consentVersion: SESSION_CONSENT_VERSION,
-      consentPoints: SESSION_CONSENT_POINTS,
+      consentPoints: sessionConsentPoints(config.required),
       retentionDays: config.retentionDays,
       validHours: config.validHours,
       lastVerifiedAt,

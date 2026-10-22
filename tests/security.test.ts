@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { escapeHtml } from "../lib/security/email";
 import { parseImageDataUrl } from "../lib/security/image";
+import { shouldPromptVerification } from "../lib/security/prompt";
 import { describeRequest, formatSecurityLocation, normalizeDeviceId } from "../lib/security/request";
 
 const PNG_1PX =
@@ -60,5 +61,25 @@ describe("request context", () => {
 describe("escapeHtml", () => {
   it("neutralises markup in email fields", () => {
     expect(escapeHtml('<img src=x onerror="alert(1)">')).toBe("&lt;img src=x onerror=&quot;alert(1)&quot;&gt;");
+  });
+});
+
+describe("shouldPromptVerification", () => {
+  const base = { enabled: true, required: false, due: true, dismissed: false, verified: false };
+
+  it("never prompts when verification is unavailable", () => {
+    expect(shouldPromptVerification({ ...base, enabled: false, required: true })).toBe(false);
+  });
+
+  it("cannot be dismissed when verification is required", () => {
+    expect(shouldPromptVerification({ ...base, required: true, due: false, dismissed: true })).toBe(true);
+    expect(shouldPromptVerification({ ...base, required: true, verified: true })).toBe(false);
+  });
+
+  it("keeps optional verification dismissible and only prompts when due", () => {
+    expect(shouldPromptVerification(base)).toBe(true);
+    expect(shouldPromptVerification({ ...base, due: false })).toBe(false);
+    expect(shouldPromptVerification({ ...base, dismissed: true })).toBe(false);
+    expect(shouldPromptVerification({ ...base, verified: true })).toBe(false);
   });
 });
