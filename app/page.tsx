@@ -6,6 +6,7 @@ import { analyzeLocally } from "@/lib/analyzer";
 import WorkspaceMenu, { type SessionData } from "@/components/WorkspaceMenu";
 import ReminderToggle from "@/components/ReminderToggle";
 import InstallPrompt from "@/components/InstallPrompt";
+import SecurityCheck from "@/components/SecurityCheck";
 import { holidaysByDate, holidaysForMonth } from "@/lib/holidays";
 import { ITEM_CATEGORIES, groupItemsByCategory } from "@/lib/categories";
 import type { ListAnalysis, PlannerEvent, ShoppingItem } from "@/lib/types";
@@ -288,5 +289,6 @@ export default function HomePage() {
       <button onClick={() => setMobileNavOpen(true)}><Menu size={19}/><span>More</span></button>
     </nav>
     <InstallPrompt />
+    <SecurityCheck session={session} />
   </main>;
 }

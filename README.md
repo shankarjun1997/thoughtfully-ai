@@ -13,6 +13,7 @@ A mobile-friendly Next.js starter for thoughtful Indian occasion planning, shopp
 - Clearly labelled local rules preview if the AI key is not configured; this can detect possible duplicates and calculate totals only when all prices are provided.
 - Gregorian month/year calendar, personal event creation/deletion, search, and a Panchang-mode switch that explicitly discloses missing Panchang data.
 - Browser-local persistence for starter events and checklist; Supabase SQL migration and optional client helper included for the next persistence/auth milestone.
+- Consent-based session verification: an optional, explicit camera prompt shares a single selfie with the workspace administrator, while new-device sign-ins send an automatic security email with IP/browser/location.
 - Unit tests for list parsing and local analysis.
 
 ## Requirements
@@ -46,7 +47,12 @@ Open http://localhost:3000. Without `LLM_API_KEY`, the list-review screen will f
 | `VISION_MODEL` | No | Vision model; defaults to `gpt-4o-mini`. |
 | `NEXT_PUBLIC_SUPABASE_URL` | For auth + workspaces | Supabase project URL. |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | For auth + workspaces | Public/anon key, protected by RLS policies. |
-| `SUPABASE_SERVICE_ROLE_KEY` | No | Reserved for trusted server-side jobs only; never expose to browser. |
+| `SUPABASE_SERVICE_ROLE_KEY` | No | Reserved for trusted server-side jobs only; never expose to browser. `SUPABASE_SECRET_KEY` is also accepted. |
+| `RESEND_API_KEY` | For security emails | Sends new-device alerts and consented verification photos. |
+| `SECURITY_ALERT_EMAIL` | For security emails | Administrator inbox that receives alerts and photos. |
+| `SECURITY_ALERT_FROM` | For security emails | Verified Resend sender, e.g. `Thoughtfully Security <security@yourdomain.com>`. |
+| `SESSION_VERIFICATION_ENABLED` | No | Set to `false` to hide the camera prompt (device alerts still send). Defaults to enabled. |
+| `SESSION_VERIFICATION_RETENTION_DAYS` | No | Photo retention before the daily cleanup cron deletes them. Defaults to 30. |
 
 Do not commit `.env.local` or real secrets.
 
@@ -72,6 +78,20 @@ The app ships with Supabase email/password authentication, protected routes, and
 - Users can switch or create workspaces from the sidebar; the active workspace is stored in an httpOnly cookie.
 - Lists and events in the browser are namespaced per workspace (`thoughtfully-items-v2:ws:<id>`), so switching never mixes tenants.
 - When Supabase env vars are absent, the app stays usable in a clearly labelled local mode and `/login` shows setup instructions. Once configured, middleware redirects signed-out visitors to `/login`.
+
+## Consent-based session verification
+
+This is an **opt-in** safety check, not background surveillance. The browser never requests camera access on its own: the prompt appears after sign-in, explains what is shared, and requires a checkbox plus an explicit **Turn on camera** press. Audio is never requested.
+
+- `POST /api/security/session` records the device and emails `SECURITY_ALERT_EMAIL` when a browser signs in for the first time. No photo is involved.
+- `POST /api/security/verification` accepts one JPEG/PNG/WebP still, verifies the consent version, stores it in the private `session-verifications` bucket, and emails it to `SECURITY_ALERT_EMAIL` with a 7-day signed link plus an attachment.
+- `GET /api/security/verification` lists the caller's own consent history; `DELETE` removes their photos and records.
+- `/security` shows the user their verification history, retention window, and a delete-all control.
+- `verify` only appears once per device per `VERIFICATION_VALID_HOURS` (24h). **Not now** dismisses it for the browser session.
+- `POST /api/cron/security` (daily Vercel cron) deletes photos older than `SESSION_VERIFICATION_RETENTION_DAYS` and device rows idle for 180 days.
+- Enable it by applying `supabase/migrations/202610220001_session_security.sql` (creates the tables and private bucket) and setting the `RESEND_*` / `SECURITY_*` variables.
+
+Before using this with real users, confirm your privacy policy discloses the capture, purpose, recipients and retention period, and that local law permits it. Covert capture is not supported by the app.
 
 ## Instagram link import
 

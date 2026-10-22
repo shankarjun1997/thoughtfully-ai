@@ -4,8 +4,18 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Building2, Database, Lock, Mail, ShieldCheck, User } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { DISMISSED_STORAGE_KEY, VERIFIED_STORAGE_KEY } from "@/lib/security/consent";
 
 type Mode = "signin" | "signup";
+
+function resetSecurityPrompt() {
+  try {
+    sessionStorage.removeItem(DISMISSED_STORAGE_KEY);
+    sessionStorage.removeItem(VERIFIED_STORAGE_KEY);
+  } catch {
+    // Storage can be unavailable in strict private modes.
+  }
+}
 
 export default function LoginForm({ configured, next, initialError }: { configured: boolean; next: string; initialError?: string }) {
   const router = useRouter();
@@ -35,6 +45,7 @@ export default function LoginForm({ configured, next, initialError }: { configur
       if (mode === "signin") {
         const { error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
         if (signInError) throw new Error(signInError.message);
+        resetSecurityPrompt();
         router.replace(next);
         router.refresh();
         return;
@@ -56,6 +67,7 @@ export default function LoginForm({ configured, next, initialError }: { configur
         return;
       }
 
+      resetSecurityPrompt();
       router.replace(next);
       router.refresh();
     } catch (caught) {
