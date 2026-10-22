@@ -13,7 +13,7 @@ self.addEventListener("push", (event) => {
   event.waitUntil(self.registration.showNotification(title, {
     body,
     tag: "thoughtfully-reminder",
-    data: { url: payload.url || "/" },
+    data: { url: payload.url || "/app" },
     icon: "/icon-192.png",
     badge: "/icon-192.png",
   }));
@@ -21,7 +21,7 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const target = new URL(event.notification.data?.url || "/", self.location.origin).href;
+  const target = new URL(event.notification.data?.url || "/app", self.location.origin).href;
   event.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
     const existing = clients.find((client) => client.url === target);
     if (existing) return existing.focus();
