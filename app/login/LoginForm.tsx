@@ -114,7 +114,7 @@ export default function LoginForm({ configured, next, initialError }: { configur
           <>
             <label className="auth-field" htmlFor="fullName">
               <span>Your name</span>
-              <div className="auth-input"><User size={15} /><input id="fullName" autoComplete="name" enterKeyHint="next" required maxLength={120} value={fullName} onChange={(event) => setFullName(event.target.value)} placeholder="Shankar Arjunan" /></div>
+              <div className="auth-input"><User size={15} /><input id="fullName" autoComplete="name" enterKeyHint="next" required maxLength={120} value={fullName} onChange={(event) => setFullName(event.target.value)} placeholder="e.g. Ananya Rao" /></div>
             </label>
             <label className="auth-field" htmlFor="workspaceName">
               <span>Workspace name</span>
