@@ -63,6 +63,10 @@
 .security-empty{font-size:10px;line-height:1.7;color:#9aa095;margin:13px 0 0}
 .security-page-note{margin:19px 0 0;font-size:9.5px;line-height:1.7;color:#9aa095}
 .security-page-note strong{color:#6f776b}
+.security-verify-sheet .security-page-head{margin-bottom:20px}
+.security-page-flow .security-card{padding:0;border:0;box-shadow:none;max-height:none;overflow:visible;background:transparent}
+.security-card-page{padding:22px}
+.security-page-note a{color:#5a714c}
 @media(max-width:680px){
   .security-overlay{padding:0;align-items:flex-end}
   .security-card{width:100%;max-height:calc(100vh - 10px);border-radius:17px 17px 0 0;padding:19px 17px calc(17px + env(safe-area-inset-bottom))}

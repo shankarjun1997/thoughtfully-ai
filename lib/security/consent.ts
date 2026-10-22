@@ -2,7 +2,7 @@
  * Consent copy is shared by the browser prompt and the server so the version
  * recorded in the database always matches what the person agreed to.
  */
-export const SESSION_CONSENT_VERSION = "2026-10-22.1";
+export const SESSION_CONSENT_VERSION = "2026-10-22.2";
 
 export const SESSION_CONSENT_POINTS = [
   "A single photo is taken from your camera only after you press “Verify this device”. No audio is recorded.",
@@ -14,7 +14,7 @@ export function sessionConsentPoints(required: boolean) {
   return [
     ...SESSION_CONSENT_POINTS,
     required
-      ? "Verification is required to keep using this workspace. You can sign out instead, and you can delete your verification history at any time."
+      ? "Verification is required to keep using this workspace. You can sign out, and if you cannot use a camera, contact the administrator for an alternative check."
       : "Verification is optional. You can press “Not now”, keep using your account, and delete your verification history at any time.",
   ];
 }

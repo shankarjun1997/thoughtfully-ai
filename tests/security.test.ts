@@ -1,8 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { escapeHtml } from "../lib/security/email";
 import { parseImageDataUrl } from "../lib/security/image";
 import { shouldPromptVerification } from "../lib/security/prompt";
 import { describeRequest, formatSecurityLocation, normalizeDeviceId } from "../lib/security/request";
+import { createVerificationToken, isVerificationTokenValid } from "../lib/security/session-cookie";
 
 const PNG_1PX =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
@@ -81,5 +82,37 @@ describe("shouldPromptVerification", () => {
     expect(shouldPromptVerification({ ...base, due: false })).toBe(false);
     expect(shouldPromptVerification({ ...base, dismissed: true })).toBe(false);
     expect(shouldPromptVerification({ ...base, verified: true })).toBe(false);
+  });
+});
+
+describe("verification gate token", () => {
+  const userId = "bd7c5f14-8e14-4c6c-bda8-9cc38cbe2e18";
+
+  beforeAll(() => {
+    process.env.SECURITY_SESSION_SECRET = "test-gate-secret";
+  });
+
+  it("accepts a token only for the same user", async () => {
+    const token = await createVerificationToken(userId, 1);
+    expect(token).toBeTruthy();
+    await expect(isVerificationTokenValid(token, userId)).resolves.toBe(true);
+    await expect(isVerificationTokenValid(token, "11111111-1111-1111-1111-111111111111")).resolves.toBe(false);
+  });
+
+  it("rejects missing, tampered and expired tokens", async () => {
+    await expect(isVerificationTokenValid(undefined, userId)).resolves.toBe(false);
+    const token = await createVerificationToken(userId, 1);
+    await expect(isVerificationTokenValid(`${token}x`, userId)).resolves.toBe(false);
+    const expired = await createVerificationToken(userId, -1);
+    await expect(isVerificationTokenValid(expired, userId)).resolves.toBe(false);
+  });
+
+  it("does not issue tokens without a secret", async () => {
+    const previous = process.env.SECURITY_SESSION_SECRET;
+    delete process.env.SECURITY_SESSION_SECRET;
+    delete process.env.SUPABASE_SECRET_KEY;
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    await expect(createVerificationToken(userId, 1)).resolves.toBeNull();
+    process.env.SECURITY_SESSION_SECRET = previous;
   });
 });

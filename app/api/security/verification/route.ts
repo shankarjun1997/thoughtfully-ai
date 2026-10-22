@@ -8,6 +8,7 @@ import { SESSION_CONSENT_VERSION } from "@/lib/security/consent";
 import { sendSecurityEmail } from "@/lib/security/email";
 import { parseImageDataUrl } from "@/lib/security/image";
 import { describeRequest, formatSecurityLocation, normalizeDeviceId } from "@/lib/security/request";
+import { createVerificationToken, VERIFICATION_COOKIE, VERIFICATION_COOKIE_OPTIONS } from "@/lib/security/session-cookie";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -132,13 +133,21 @@ export async function POST(request: Request) {
     await admin.from("session_verifications").update({ emailed_at: new Date().toISOString() }).eq("id", inserted.id);
   }
 
-  return NextResponse.json({
+  const response = NextResponse.json({
     ok: true,
     id: inserted.id,
     delivered,
     retentionDays: config.retentionDays,
     createdAt: inserted.created_at,
   });
+  const gateToken = await createVerificationToken(user.id, config.validHours);
+  if (gateToken) {
+    response.cookies.set(VERIFICATION_COOKIE, gateToken, {
+      ...VERIFICATION_COOKIE_OPTIONS,
+      maxAge: config.validHours * 60 * 60,
+    });
+  }
+  return response;
 }
 
 /** Returns only the caller's own consent history (RLS enforces the boundary). */
@@ -188,5 +197,7 @@ export async function DELETE() {
   const { error } = await admin.from("session_verifications").delete().eq("user_id", user.id);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
-  return NextResponse.json({ ok: true, removed: rows?.length ?? 0 });
+  const response = NextResponse.json({ ok: true, removed: rows?.length ?? 0 });
+  response.cookies.set(VERIFICATION_COOKIE, "", { ...VERIFICATION_COOKIE_OPTIONS, maxAge: 0 });
+  return response;
 }

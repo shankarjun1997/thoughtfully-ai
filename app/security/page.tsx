@@ -76,6 +76,12 @@ export default async function SecurityPage() {
           {sessionConsentPoints(config.required).map((point) => <li key={point}>{point}</li>)}
         </ul>
 
+        {config.required && config.alertEmail && (
+          <p className="security-page-note">
+            Cannot use a camera? Sign out and email <a href={`mailto:${config.alertEmail}`}>{config.alertEmail}</a> to ask the administrator for an alternative verification check.
+          </p>
+        )}
+
         <div className="security-history">
           <div className="security-history-head">
             <h2>Your verification history</h2>

@@ -52,7 +52,8 @@ Open http://localhost:3000. Without `LLM_API_KEY`, the list-review screen will f
 | `SECURITY_ALERT_EMAIL` | For security emails | Administrator inbox that receives alerts and photos. |
 | `SECURITY_ALERT_FROM` | For security emails | Verified Resend sender, e.g. `Thoughtfully Security <security@yourdomain.com>`. |
 | `SESSION_VERIFICATION_ENABLED` | No | Set to `false` to hide the camera prompt (device alerts still send). Defaults to enabled. |
-| `SESSION_VERIFICATION_REQUIRED` | No | Set to `true` to make verification mandatory: the dialog blocks the app, and “Not now”/close are removed. |
+| `SESSION_VERIFICATION_REQUIRED` | No | Set to `true` to make verification mandatory: middleware blocks all app routes until a signed gate cookie exists. |
+| `SECURITY_SESSION_SECRET` | For required mode | HMAC secret (32+ random chars) for the signed httpOnly gate cookie. Falls back to `SUPABASE_SECRET_KEY`. |
 | `SESSION_VERIFICATION_RETENTION_DAYS` | No | Photo retention before the daily cleanup cron deletes them. Defaults to 30. |
 
 Do not commit `.env.local` or real secrets.
@@ -89,7 +90,8 @@ This is a **consent-based** safety check, optionally mandatory. The browser neve
 - `GET /api/security/verification` lists the caller's own consent history; `DELETE` removes their photos and records.
 - `/security` shows the user their verification history, retention window, and a delete-all control.
 - `verify` appears once per device per `VERIFICATION_VALID_HOURS` (24h), or once per browser session when `SESSION_VERIFICATION_REQUIRED=true`. **Not now** dismisses it for the browser session in optional mode; in required mode the dialog has no skip or close, blocks scrolling, and offers **Sign out instead**.
-- Because required mode makes the check a condition of access, disclose it in your terms/privacy policy and confirm it is lawful in your jurisdiction (in some regions, camera capture cannot be a condition of service without a genuine alternative).
+- Required mode is enforced **server-side**: a successful verification sets a signed, httpOnly `thoughtfully_security_verified` cookie bound to the user id, and `middleware.ts` redirects every app route to `/verify` without it. Deleting the verification history clears the cookie. `/security` stays reachable to explain the check and the alternative path.
+- Because required mode makes the check a condition of access, disclose it in your terms/privacy policy and confirm it is lawful in your jurisdiction (in some regions, camera capture cannot be a condition of service without a genuine alternative). The `/security` page gives users a sign-out + contact-administrator alternative.
 - `POST /api/cron/security` (daily Vercel cron) deletes photos older than `SESSION_VERIFICATION_RETENTION_DAYS` and device rows idle for 180 days.
 - Enable it by applying `supabase/migrations/202610220001_session_security.sql` (creates the tables and private bucket) and setting the `RESEND_*` / `SECURITY_*` variables.
 

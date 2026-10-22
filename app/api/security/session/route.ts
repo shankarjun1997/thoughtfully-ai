@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { z } from "zod";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -7,6 +8,7 @@ import { getSecurityConfig } from "@/lib/security/config";
 import { sessionConsentPoints, SESSION_CONSENT_VERSION } from "@/lib/security/consent";
 import { sendSecurityEmail } from "@/lib/security/email";
 import { describeRequest, formatSecurityLocation, normalizeDeviceId } from "@/lib/security/request";
+import { isVerificationTokenValid, VERIFICATION_COOKIE } from "@/lib/security/session-cookie";
 
 export const runtime = "nodejs";
 
@@ -120,10 +122,14 @@ export async function POST(request: Request) {
     ? Date.now() - new Date(lastVerifiedAt).getTime() < config.validHours * 60 * 60 * 1000
     : false;
 
+  const cookieStore = await cookies();
+  const gateSatisfied = await isVerificationTokenValid(cookieStore.get(VERIFICATION_COOKIE)?.value, user.id);
+
   return NextResponse.json({
     configured: true,
     isNewDevice,
     alertDelivered,
+    gateSatisfied,
     verification: {
       enabled,
       required: enabled && config.required,
