@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Building2, Database, Lock, Mail, ShieldCheck, User } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -27,11 +28,35 @@ export default function LoginForm({ configured, next, initialError }: { configur
   const [error, setError] = useState(initialError ?? "");
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resetSending, setResetSending] = useState(false);
 
   function switchMode(nextMode: Mode) {
     setMode(nextMode);
     setError("");
     setNotice("");
+  }
+
+  async function sendReset() {
+    if (!email.trim()) {
+      setError("Enter your email address first, then choose “Forgot password?”.");
+      setNotice("");
+      return;
+    }
+    setResetSending(true);
+    setError("");
+    setNotice("");
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/auth/callback?next=/reset`,
+      });
+      if (resetError) throw new Error(resetError.message);
+      setNotice(`If an account exists for ${email.trim()}, we sent a password reset link. Open it on this device to choose a new password.`);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not send the reset email. Please try again.");
+    } finally {
+      setResetSending(false);
+    }
   }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -132,6 +157,15 @@ export default function LoginForm({ configured, next, initialError }: { configur
           <span>Password</span>
           <div className="auth-input"><Lock size={15} /><input id="password" type="password" autoCapitalize="none" autoComplete={mode === "signin" ? "current-password" : "new-password"} required minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} placeholder={mode === "signin" ? "Your password" : "At least 8 characters"} /></div>
         </label>
+
+        {mode === "signin" && (
+          <div className="auth-forgot-row">
+            <button type="button" className="auth-text-button" disabled={resetSending || loading} onClick={sendReset}>
+              {resetSending ? "Sending reset link…" : "Forgot password?"}
+            </button>
+            <Link href="/reset" className="auth-text-button">Have a reset link?</Link>
+          </div>
+        )}
 
         {error && <div className="auth-message error" role="alert">{error}</div>}
         {notice && <div className="auth-message success" role="status">{notice}</div>}

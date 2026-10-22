@@ -67,10 +67,24 @@
 .security-page-flow .security-card{padding:0;border:0;box-shadow:none;max-height:none;overflow:visible;background:transparent}
 .security-card-page{padding:22px}
 .security-page-note a{color:#5a714c}
+.security-local-note{font-size:9.5px;line-height:1.7;color:#6f776b;margin:10px 0 0;background:#f4f7ef;border:1px solid #e6ecdd;border-radius:7px;padding:7px 9px}
+.security-liveness{background:#121710}
+.security-oval{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.security-oval-ring{stroke:#fff;stroke-width:1.7px;opacity:.95;transition:stroke .18s ease,filter .18s ease}
+.security-capture.is-aligned .security-oval-ring{stroke:#9ee08a;filter:drop-shadow(0 0 6px #9ee08aa6)}
+.security-liveness-status{position:absolute;left:50%;top:9px;transform:translateX(-50%);max-width:calc(100% - 18px);background:#151c12d9;color:#f0f5ea;border-radius:999px;padding:6px 11px;font-size:9.5px;font-weight:700;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;backdrop-filter:blur(3px);transition:background .18s ease,color .18s ease}
+.security-liveness-status.is-aligned{background:#2f4b28e6;color:#e4f8db}
+.security-countdown{position:absolute;inset:0;display:grid;place-items:center;font-size:58px;line-height:1;font-weight:700;color:#f4fbf0;text-shadow:0 4px 26px #0b1208;font-variant-numeric:tabular-nums;pointer-events:none}
+.security-fallback-note{font-size:9.5px;line-height:1.65;color:#7a6a4e;background:#fbf7ec;border:1px solid #efe5cd;border-radius:7px;padding:7px 9px;margin:9px 0 0}
+.security-fallback-button{border:1px solid #d8e3cc;background:#f4f8ee;color:#405539;border-radius:8px;padding:9px 12px;font-size:10.5px;font-weight:700;display:inline-flex;align-items:center;gap:7px}
+.security-fallback-button:hover{background:#eaf2e1;border-color:#c8d8b8}
 @media(max-width:680px){
   .security-overlay{padding:0;align-items:flex-end}
   .security-card{width:100%;max-height:calc(100vh - 10px);border-radius:17px 17px 0 0;padding:19px 17px calc(17px + env(safe-area-inset-bottom))}
   .security-page{padding:18px 10px 40px}
   .security-sheet{padding:20px 16px;border-radius:15px}
   .security-actions .security-primary{flex:1;justify-content:center;min-height:42px}
+  .security-fallback-button{flex:1;justify-content:center;min-height:42px}
+  .security-countdown{font-size:46px}
+  .security-liveness-status{font-size:9px;padding:5px 9px}
 }

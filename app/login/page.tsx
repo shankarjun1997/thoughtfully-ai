@@ -38,7 +38,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <section className="auth-panel">
           <LoginForm configured={isSupabaseConfigured} next={next} initialError={params.error} />
           {!isSupabaseConfigured && (
-            <Link href="/" className="auth-local-link">Continue in local mode <ArrowRight size={14} /></Link>
+            <Link href="/app" className="auth-local-link">Continue in local mode <ArrowRight size={14} /></Link>
           )}
           <p className="auth-legal">By continuing you agree to keep workspace invitations limited to people you trust.</p>
         </section>

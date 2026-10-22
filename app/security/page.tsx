@@ -30,7 +30,7 @@ export default async function SecurityPage() {
     return (
       <main className="security-page">
         <div className="security-sheet">
-          <Link href="/" className="security-back"><ArrowLeft size={14} /> Back to planner</Link>
+          <Link href="/app" className="security-back"><ArrowLeft size={14} /> Back to planner</Link>
           <h1>Security</h1>
           <p className="security-page-intro">Local mode is active, so no account, device or photo data is collected.</p>
         </div>
@@ -55,7 +55,7 @@ export default async function SecurityPage() {
   return (
     <main className="security-page">
       <div className="security-sheet">
-        <Link href="/" className="security-back"><ArrowLeft size={14} /> Back to planner</Link>
+        <Link href="/app" className="security-back"><ArrowLeft size={14} /> Back to planner</Link>
 
         <div className="security-page-head">
           <span className="security-page-icon"><ShieldCheck size={22} /></span>

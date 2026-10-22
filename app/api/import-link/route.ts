@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { isRequestAuthenticated } from "@/lib/auth/guard";
+import { requireVerifiedRequest } from "@/lib/security/api-gate";
 import { captureScreenshot } from "@/lib/browserless";
 import { fetchInstagramEmbed, parseInstagramUrl, type InstagramEmbed } from "@/lib/instagram";
 import { extractTextFromImages, type CapturedImage } from "@/lib/ocr";
@@ -84,7 +84,8 @@ async function downloadImages(urls: string[]): Promise<CapturedImage[]> {
 
 export async function POST(request: Request) {
   try {
-    if (!(await isRequestAuthenticated())) return NextResponse.json({ error: "Sign in to use AI features." }, { status: 401 });
+    const gate = await requireVerifiedRequest({ unauthenticatedMessage: "Sign in to use AI features." });
+    if (!gate.ok) return gate.response;
     const parsed = requestSchema.safeParse(await request.json().catch(() => null));
     if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid request." }, { status: 400 });
 

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireVerifiedRequest } from "@/lib/security/api-gate";
 
 const reminderSchema = z.object({
   workspaceId: z.string().uuid(),
@@ -14,20 +14,16 @@ const reminderSchema = z.object({
   }),
 });
 
-async function authenticated() {
-  const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  return { supabase, user };
-}
-
 export async function POST(request: Request) {
   if (!isSupabaseConfigured) return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
 
   const parsed = reminderSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid reminder." }, { status: 400 });
 
-  const { supabase, user } = await authenticated();
-  if (!user) return NextResponse.json({ error: "Sign in to use reminders." }, { status: 401 });
+  const gate = await requireVerifiedRequest({ unauthenticatedMessage: "Sign in to use reminders." });
+  if (!gate.ok) return gate.response;
+  if (!gate.user || !gate.supabase) return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
+  const { supabase, user } = gate;
 
   const { data: membership } = await supabase
     .from("workspace_members")
@@ -68,8 +64,10 @@ export async function DELETE(request: Request) {
   const workspaceId = url.searchParams.get("workspaceId");
   if (!eventId || !workspaceId) return NextResponse.json({ error: "Missing eventId or workspaceId." }, { status: 400 });
 
-  const { supabase, user } = await authenticated();
-  if (!user) return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
+  const gate = await requireVerifiedRequest({ unauthenticatedMessage: "Not authenticated." });
+  if (!gate.ok) return gate.response;
+  if (!gate.user || !gate.supabase) return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
+  const { supabase, user } = gate;
 
   const { error } = await supabase.from("event_reminders").delete()
     .eq("user_id", user.id)

@@ -48,7 +48,7 @@ export async function GET(request: Request) {
     const payload = {
       title: `Coming up: ${reminder.title}`,
       body: `${eventLabel} · ${reminder.category}. Open Thoughtfully to review your checklist.`,
-      url: "/",
+      url: "/app",
     };
 
     let delivered = 0;

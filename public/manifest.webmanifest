@@ -2,7 +2,7 @@
   "name": "Thoughtfully AI",
   "short_name": "Thoughtfully",
   "description": "Your thoughtful occasion and shopping planner",
-  "start_url": "/",
+  "start_url": "/app",
   "display": "standalone",
   "background_color": "#f7f7f2",
   "theme_color": "#4c6044",

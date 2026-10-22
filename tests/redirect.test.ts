@@ -7,8 +7,12 @@ describe("safeNextPath", () => {
   });
 
   it("rejects external and protocol-relative paths", () => {
-    expect(safeNextPath("https://evil.example")).toBe("/");
-    expect(safeNextPath("//evil.example")).toBe("/");
-    expect(safeNextPath(null)).toBe("/");
+    expect(safeNextPath("https://evil.example")).toBe("/app");
+    expect(safeNextPath("//evil.example")).toBe("/app");
+    expect(safeNextPath(null)).toBe("/app");
+  });
+
+  it("allows callers to choose a different fallback", () => {
+    expect(safeNextPath(null, "/login")).toBe("/login");
   });
 });

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Check, LogIn, LogOut, Plus, X } from "lucide-react";
+import { Check, LogIn, LogOut, Plus, UserRound, X } from "lucide-react";
 
 export type Workspace = { id: string; name: string; slug: string; role: string };
 export type SessionData = {
@@ -103,9 +103,14 @@ export default function WorkspaceMenu({ session }: { session: SessionData | null
 
       {error && <p className="workspace-error">{error}</p>}
 
-      <form action="/auth/signout" method="post" className="workspace-signout">
-        <button type="submit"><LogOut size={14} /> Sign out</button>
-      </form>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 9 }}>
+        <Link href="/account" style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 9, fontWeight: 600, color: "#8b9186", textDecoration: "none", padding: "4px 0" }}>
+          <UserRound size={14} /> Account
+        </Link>
+        <form action="/auth/signout" method="post" className="workspace-signout" style={{ marginTop: 0 }}>
+          <button type="submit"><LogOut size={14} /> Sign out</button>
+        </form>
+      </div>
     </div>
   );
 }

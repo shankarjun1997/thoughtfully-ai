@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireVerifiedRequest } from "@/lib/security/api-gate";
 
 const subscriptionSchema = z.object({
   workspaceId: z.string().uuid(),
@@ -13,20 +13,16 @@ const subscriptionSchema = z.object({
 
 const deleteSchema = z.object({ endpoint: z.string().url() });
 
-async function authenticated() {
-  const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  return { supabase, user };
-}
-
 export async function POST(request: Request) {
   if (!isSupabaseConfigured) return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
 
   const parsed = subscriptionSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid push subscription." }, { status: 400 });
 
-  const { supabase, user } = await authenticated();
-  if (!user) return NextResponse.json({ error: "Sign in to enable reminders." }, { status: 401 });
+  const gate = await requireVerifiedRequest({ unauthenticatedMessage: "Sign in to enable reminders." });
+  if (!gate.ok) return gate.response;
+  if (!gate.user || !gate.supabase) return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
+  const { supabase, user } = gate;
 
   const { data: membership } = await supabase
     .from("workspace_members")
@@ -56,8 +52,10 @@ export async function DELETE(request: Request) {
   const parsed = deleteSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid subscription." }, { status: 400 });
 
-  const { supabase, user } = await authenticated();
-  if (!user) return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
+  const gate = await requireVerifiedRequest({ unauthenticatedMessage: "Not authenticated." });
+  if (!gate.ok) return gate.response;
+  if (!gate.user || !gate.supabase) return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
+  const { supabase, user } = gate;
 
   const { error } = await supabase.from("push_subscriptions").delete().eq("endpoint", parsed.data.endpoint).eq("user_id", user.id);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });

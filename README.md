@@ -13,7 +13,9 @@ A mobile-friendly Next.js starter for thoughtful Indian occasion planning, shopp
 - Clearly labelled local rules preview if the AI key is not configured; this can detect possible duplicates and calculate totals only when all prices are provided.
 - Gregorian month/year calendar, personal event creation/deletion, search, and a Panchang-mode switch that explicitly discloses missing Panchang data.
 - Browser-local persistence for starter events and checklist; Supabase SQL migration and optional client helper included for the next persistence/auth milestone.
-- Consent-based session verification: an optional, explicit camera prompt shares a single selfie with the workspace administrator, while new-device sign-ins send an automatic security email with IP/browser/location.
+- Consent-based session verification: a mandatory, explicit camera prompt with a face oval, blink liveness and auto-capture shares one still with the workspace administrator; new devices send an automatic security email.
+- 7-day free trial, then a one-time ₹200/year Razorpay checkout (disabled safely when keys are absent).
+- Public landing page with a capability tour and sample demo, plus `/privacy` and `/terms`.
 - Unit tests for list parsing and local analysis.
 
 ## Requirements
@@ -48,8 +50,12 @@ Open http://localhost:3000. Without `LLM_API_KEY`, the list-review screen will f
 | `NEXT_PUBLIC_SUPABASE_URL` | For auth + workspaces | Supabase project URL. |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | For auth + workspaces | Public/anon key, protected by RLS policies. |
 | `SUPABASE_SERVICE_ROLE_KEY` | No | Reserved for trusted server-side jobs only; never expose to browser. `SUPABASE_SECRET_KEY` is also accepted. |
+| `RAZORPAY_KEY_ID` | For billing | Live/test Razorpay key id. When unset, billing is disabled and no one is blocked. |
+| `RAZORPAY_KEY_SECRET` | For billing | Razorpay key secret; server-only. |
+| `RAZORPAY_WEBHOOK_SECRET` | For billing | HMAC secret configured on the Razorpay webhook (`/api/billing/webhook`). |
 | `RESEND_API_KEY` | For security emails | Sends new-device alerts and consented verification photos. |
 | `SECURITY_ALERT_EMAIL` | For security emails | Administrator inbox that receives alerts and photos. |
+| `SECURITY_ADMIN_EMAILS` | No | Comma-separated allowlist for `/admin/security`; falls back to `SECURITY_ALERT_EMAIL`. |
 | `SECURITY_ALERT_FROM` | For security emails | Verified Resend sender, e.g. `Thoughtfully Security <security@yourdomain.com>`. |
 | `SESSION_VERIFICATION_ENABLED` | No | Set to `false` to hide the camera prompt (device alerts still send). Defaults to enabled. |
 | `SESSION_VERIFICATION_REQUIRED` | No | Set to `true` to make verification mandatory: middleware blocks all app routes until a signed gate cookie exists. |
@@ -75,28 +81,43 @@ Do not commit `.env.local` or real secrets.
 
 The app ships with Supabase email/password authentication, protected routes, and workspace-based tenancy.
 
-- `/login` has sign-in and "Create workspace" flows.
-- New accounts automatically receive an owner workspace through a database trigger.
+- `/` is a public marketing/demo page; the planner lives at `/app`.
+- `/login` has sign-in, "Create workspace", and a forgot-password flow. `/reset` sets a new password from the recovery link.
+- New accounts automatically receive an owner workspace and a 7-day trial through database triggers.
 - `/api/session` returns the signed-in user, their workspaces, and the active workspace.
 - Users can switch or create workspaces from the sidebar; the active workspace is stored in an httpOnly cookie.
 - Lists and events in the browser are namespaced per workspace (`thoughtfully-items-v2:ws:<id>`), so switching never mixes tenants.
+- `/account` lets the user export their account data or delete the account and verification photos.
+- `/privacy` and `/terms` are public and describe camera verification, retention, billing and deletion.
 - When Supabase env vars are absent, the app stays usable in a clearly labelled local mode and `/login` shows setup instructions. Once configured, middleware redirects signed-out visitors to `/login`.
 
 ## Consent-based session verification
 
-This is a **consent-based** safety check, optionally mandatory. The browser never requests camera access on its own: the prompt appears after sign-in, explains what is shared, and requires a checkbox plus an explicit **Turn on camera** press. Audio is never requested.
+This is a **consent-based** safety check, mandatory in production. The browser never requests camera access on its own: the prompt appears after sign-in, explains what is shared, and requires a checkbox plus an explicit **Turn on camera** press. Audio is never requested.
 
+- The camera view has a face oval, on-device MediaPipe face detection and a blink challenge. A face must be centred for ~0.8s and a blink detected before a countdown auto-captures one still. No uploads and no manual capture button in normal mode; if the on-device model cannot load, a clearly labelled manual fallback is available and recorded as `manual_fallback`.
+- Face detection only checks presence/liveness in the browser. No face recognition, identity matching or biometric template is produced or stored.
 - `POST /api/security/session` records the device and emails `SECURITY_ALERT_EMAIL` when a browser signs in for the first time. No photo is involved.
-- `POST /api/security/verification` accepts one JPEG/PNG/WebP still, verifies the consent version, stores it in the private `session-verifications` bucket, emails it to `SECURITY_ALERT_EMAIL` with a 7-day signed link plus an attachment, and sends the **user** one branded HTML confirmation (`SECURITY_NOTIFY_USER`, default on).
+- `POST /api/security/verification` accepts one JPEG/PNG/WebP still, verifies the consent version, stores the photo in the private `session-verifications` bucket, records `liveness_method`, emails the admin a 7-day signed link plus attachment, and sends the **user** one branded HTML confirmation (`SECURITY_NOTIFY_USER`, default on).
 - `GET /api/security/verification` lists the caller's own consent history; `DELETE` removes their photos and records.
 - `/security` shows the user their verification history, retention window, and a delete-all control.
-- `verify` appears once per device per `VERIFICATION_VALID_HOURS` (24h), or once per browser session when `SESSION_VERIFICATION_REQUIRED=true`. **Not now** dismisses it for the browser session in optional mode; in required mode the dialog has no skip or close, blocks scrolling, and offers **Sign out instead**.
-- Required mode is enforced **server-side**: a successful verification sets a signed, httpOnly `thoughtfully_security_verified` cookie bound to the user id, and `middleware.ts` redirects every app route to `/verify` without it. Deleting the verification history clears the cookie. `/security` stays reachable to explain the check and the alternative path.
-- Because required mode makes the check a condition of access, disclose it in your terms/privacy policy and confirm it is lawful in your jurisdiction (in some regions, camera capture cannot be a condition of service without a genuine alternative). The `/security` page gives users a sign-out + contact-administrator alternative.
+- Required mode is enforced **server-side**: a successful verification sets a signed, httpOnly `thoughtfully_security_verified` cookie bound to the user id; `middleware.ts` redirects pages to `/verify`, and `lib/security/api-gate.ts` blocks AI/workspace/reminder APIs until verified. Deleting verification history clears the cookie.
+- `/admin/security` (allowlisted by `SECURITY_ADMIN_EMAILS` or `SECURITY_ALERT_EMAIL`) lists recent devices and verifications, signs photo URLs for one hour, and can permanently delete a verification.
 - `POST /api/cron/security` (daily Vercel cron) deletes photos older than `SESSION_VERIFICATION_RETENTION_DAYS` and device rows idle for 180 days.
-- Enable it by applying `supabase/migrations/202610220001_session_security.sql` (creates the tables and private bucket) and setting the `RESEND_*` / `SECURITY_*` variables.
+- Apply `supabase/migrations/202610220001_session_security.sql` and `202610220004_verification_liveness.sql`, then set the `RESEND_*` / `SECURITY_*` variables.
 
 Before using this with real users, confirm your privacy policy discloses the capture, purpose, recipients and retention period, and that local law permits it. Covert capture is not supported by the app.
+
+## Billing, trial and subscription
+
+- Every new account gets a **7-day free trial** from `auth.users.created_at`.
+- After the trial, `/app` redirects to `/subscribe`. The plan is a **one-time ₹200 payment for 365 days** through Razorpay Checkout (Orders API), with no auto-renewal.
+- `POST /api/billing/order` creates the order; `POST /api/billing/verify` validates the payment signature, confirms the order belongs to the signed-in user, and activates the year; `POST /api/billing/webhook` is the signed backup path.
+- Billing is **disabled when Razorpay keys are absent**: users are not blocked, `/subscribe` explains that payments are not configured, and no charges can be created.
+- Apply `supabase/migrations/202610220002_subscriptions.sql` before enabling keys. Subscription writes use the service-role key, so `SUPABASE_SECRET_KEY` (or `SUPABASE_SERVICE_ROLE_KEY`) is required.
+- Register the live webhook at `https://<your-domain>/api/billing/webhook` with `payment.captured` and `order.paid`, using `RAZORPAY_WEBHOOK_SECRET`.
+
+## Instagram link import
 
 ## Instagram link import
 

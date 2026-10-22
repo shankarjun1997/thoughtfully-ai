@@ -4,6 +4,12 @@ import { safeNextPath } from "@/lib/auth/redirect";
 import { isSupabaseConfigured, supabaseAnonKey, supabaseUrl } from "@/lib/supabase/config";
 import { isVerificationTokenValid, VERIFICATION_COOKIE } from "@/lib/security/session-cookie";
 
+const PUBLIC_PATHS = ["/", "/login", "/privacy", "/terms", "/subscribe", "/reset"];
+
+function isPublicPath(pathname: string) {
+  return PUBLIC_PATHS.includes(pathname) || pathname.startsWith("/auth/");
+}
+
 function verificationRequired() {
   return process.env.SESSION_VERIFICATION_REQUIRED === "true"
     && process.env.SESSION_VERIFICATION_ENABLED !== "false"
@@ -20,6 +26,8 @@ function copyCookies(from: NextResponse, to: NextResponse) {
 }
 
 export async function middleware(request: NextRequest) {
+  const { pathname, search } = request.nextUrl;
+
   if (!isSupabaseConfigured) return NextResponse.next();
 
   let response = NextResponse.next({ request });
@@ -37,10 +45,9 @@ export async function middleware(request: NextRequest) {
   });
 
   const { data: { user } } = await supabase.auth.getUser();
-  const { pathname, search } = request.nextUrl;
-  const isAuthRoute = pathname === "/login" || pathname.startsWith("/auth/");
+  const publicRoute = isPublicPath(pathname);
 
-  if (!user && !isAuthRoute) {
+  if (!user && !publicRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.search = "";
@@ -50,12 +57,12 @@ export async function middleware(request: NextRequest) {
 
   if (user && pathname === "/login") {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/app";
     url.search = "";
     return copyCookies(response, NextResponse.redirect(url));
   }
 
-  if (user && verificationRequired()) {
+  if (user && !publicRoute && verificationRequired()) {
     const verified = await isVerificationTokenValid(request.cookies.get(VERIFICATION_COOKIE)?.value, user.id);
     const onVerifyPage = pathname === "/verify";
     const gateExempt = onVerifyPage || pathname === "/security";

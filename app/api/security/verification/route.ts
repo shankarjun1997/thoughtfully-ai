@@ -16,10 +16,13 @@ export const maxDuration = 30;
 const BUCKET = "session-verifications";
 const MIN_SECONDS_BETWEEN_VERIFICATIONS = 60;
 
+const livenessMethodSchema = z.enum(["face_blink", "manual_fallback"]);
+
 const bodySchema = z.object({
   deviceId: z.string().min(8).max(128),
   consentVersion: z.string().min(1).max(40),
   image: z.string().min(32).max(4_000_000),
+  livenessMethod: livenessMethodSchema.default("manual_fallback"),
 });
 
 async function authenticated() {
@@ -87,6 +90,7 @@ export async function POST(request: Request) {
       user_id: user.id,
       device_id: deviceId,
       consent_version: parsed.data.consentVersion,
+      liveness_method: parsed.data.livenessMethod,
       consented_at: consentedAt,
       image_path: path,
       mime_type: image.mimeType,
@@ -121,6 +125,7 @@ export async function POST(request: Request) {
       { label: "Account", value: user.email ?? user.id },
       { label: "Name", value: (user.user_metadata?.full_name as string | undefined) ?? "Not provided" },
       { label: "Consent version", value: parsed.data.consentVersion },
+      { label: "Liveness", value: parsed.data.livenessMethod === "face_blink" ? "Face + blink checked in the browser (client-reported)" : "Manual fallback (face check unavailable or not completed)" },
       { label: "Consented at (UTC)", value: consentedAt },
       { label: "IP address", value: context.ip ?? "Unknown" },
       { label: "Approx. location", value: formatSecurityLocation(context) },
@@ -180,7 +185,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from("session_verifications")
-    .select("id, device_id, consent_version, consented_at, created_at, emailed_at, city, region, country")
+    .select("id, device_id, consent_version, liveness_method, consented_at, created_at, emailed_at, city, region, country")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(25);

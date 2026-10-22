@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { isRequestAuthenticated } from "@/lib/auth/guard";
+import { requireVerifiedRequest } from "@/lib/security/api-gate";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -44,7 +44,8 @@ const apiKey = process.env.LLM_API_KEY || process.env.DEEPSEEK_API_KEY;
 
 export async function POST(request: Request) {
   try {
-    if (!(await isRequestAuthenticated())) return NextResponse.json({ error: "Sign in to use AI features." }, { status: 401 });
+    const gate = await requireVerifiedRequest({ unauthenticatedMessage: "Sign in to use AI features." });
+    if (!gate.ok) return gate.response;
     const parsed = requestSchema.safeParse(await request.json().catch(() => null));
     if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid request." }, { status: 400 });
     if (!apiKey) return NextResponse.json({ error: "AI is not configured yet. Add LLM_API_KEY to your server environment. The app's local rules preview can still be used." }, { status: 503 });
