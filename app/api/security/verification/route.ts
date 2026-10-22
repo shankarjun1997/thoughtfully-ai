@@ -5,7 +5,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSecurityConfig } from "@/lib/security/config";
 import { SESSION_CONSENT_VERSION } from "@/lib/security/consent";
-import { sendSecurityEmail } from "@/lib/security/email";
+import { sendSecurityEmail, sendUserVerificationEmail } from "@/lib/security/email";
 import { parseImageDataUrl } from "@/lib/security/image";
 import { describeRequest, formatSecurityLocation, normalizeDeviceId } from "@/lib/security/request";
 import { createVerificationToken, VERIFICATION_COOKIE, VERIFICATION_COOKIE_OPTIONS } from "@/lib/security/session-cookie";
@@ -106,7 +106,14 @@ export async function POST(request: Request) {
   }
 
   const { data: signed } = await admin.storage.from(BUCKET).createSignedUrl(path, 60 * 60 * 24 * 7);
-  const delivered = await sendSecurityEmail({
+  const verifiedAtLabel = new Date(consentedAt).toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short",
+  }) + " IST";
+  const fullName = (user.user_metadata?.full_name as string | undefined)?.trim();
+  const firstName = fullName?.split(/\s+/)[0] || (user.email?.split("@")[0] ?? "there");
+
+  const [delivered, userNotified] = await Promise.all([
+    sendSecurityEmail({
     subject: `[Thoughtfully] Session verification photo: ${user.email ?? "unknown account"}`,
     heading: "Session verification photo",
     intro: "The account holder pressed “Verify this device” and consented to this photo being shared with the workspace administrator. This is not a covert capture: the browser asked for camera permission at that moment.",
@@ -127,7 +134,20 @@ export async function POST(request: Request) {
       content: image.bytes.toString("base64"),
     },
     replyTo: user.email ?? undefined,
-  });
+    }),
+    user.email
+      ? sendUserVerificationEmail({
+          to: user.email,
+          name: firstName,
+          verifiedAt: verifiedAtLabel,
+          location: formatSecurityLocation(context),
+          browser: context.userAgent?.slice(0, 160) ?? "Unknown browser",
+          retentionDays: config.retentionDays,
+          appUrl: new URL(request.url).origin,
+          supportEmail: config.alertEmail || null,
+        })
+      : Promise.resolve(false),
+  ]);
 
   if (delivered) {
     await admin.from("session_verifications").update({ emailed_at: new Date().toISOString() }).eq("id", inserted.id);
@@ -137,6 +157,7 @@ export async function POST(request: Request) {
     ok: true,
     id: inserted.id,
     delivered,
+    userNotified,
     retentionDays: config.retentionDays,
     createdAt: inserted.created_at,
   });

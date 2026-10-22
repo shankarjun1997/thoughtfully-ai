@@ -54,6 +54,7 @@ Open http://localhost:3000. Without `LLM_API_KEY`, the list-review screen will f
 | `SESSION_VERIFICATION_ENABLED` | No | Set to `false` to hide the camera prompt (device alerts still send). Defaults to enabled. |
 | `SESSION_VERIFICATION_REQUIRED` | No | Set to `true` to make verification mandatory: middleware blocks all app routes until a signed gate cookie exists. |
 | `SECURITY_SESSION_SECRET` | For required mode | HMAC secret (32+ random chars) for the signed httpOnly gate cookie. Falls back to `SUPABASE_SECRET_KEY`. |
+| `SECURITY_NOTIFY_USER` | No | Send the user a one-time HTML confirmation after successful verification. Defaults to `true`; set to `false` to disable. |
 | `SESSION_VERIFICATION_RETENTION_DAYS` | No | Photo retention before the daily cleanup cron deletes them. Defaults to 30. |
 
 Do not commit `.env.local` or real secrets.
@@ -86,7 +87,7 @@ The app ships with Supabase email/password authentication, protected routes, and
 This is a **consent-based** safety check, optionally mandatory. The browser never requests camera access on its own: the prompt appears after sign-in, explains what is shared, and requires a checkbox plus an explicit **Turn on camera** press. Audio is never requested.
 
 - `POST /api/security/session` records the device and emails `SECURITY_ALERT_EMAIL` when a browser signs in for the first time. No photo is involved.
-- `POST /api/security/verification` accepts one JPEG/PNG/WebP still, verifies the consent version, stores it in the private `session-verifications` bucket, and emails it to `SECURITY_ALERT_EMAIL` with a 7-day signed link plus an attachment.
+- `POST /api/security/verification` accepts one JPEG/PNG/WebP still, verifies the consent version, stores it in the private `session-verifications` bucket, emails it to `SECURITY_ALERT_EMAIL` with a 7-day signed link plus an attachment, and sends the **user** one branded HTML confirmation (`SECURITY_NOTIFY_USER`, default on).
 - `GET /api/security/verification` lists the caller's own consent history; `DELETE` removes their photos and records.
 - `/security` shows the user their verification history, retention window, and a delete-all control.
 - `verify` appears once per device per `VERIFICATION_VALID_HOURS` (24h), or once per browser session when `SESSION_VERIFICATION_REQUIRED=true`. **Not now** dismisses it for the browser session in optional mode; in required mode the dialog has no skip or close, blocks scrolling, and offers **Sign out instead**.

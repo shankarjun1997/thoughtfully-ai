@@ -2,12 +2,13 @@
  * Consent copy is shared by the browser prompt and the server so the version
  * recorded in the database always matches what the person agreed to.
  */
-export const SESSION_CONSENT_VERSION = "2026-10-22.2";
+export const SESSION_CONSENT_VERSION = "2026-10-22.3";
 
 export const SESSION_CONSENT_POINTS = [
   "A single photo is taken from your camera only after you press “Verify this device”. No audio is recorded.",
   "The photo, your account email, IP address, browser details and approximate location are shared with the workspace administrator (the platform owner) for safety review.",
   "Photos are kept privately in this app for a limited time, then deleted automatically.",
+  "A one-time confirmation email is sent to your account address when verification succeeds.",
 ];
 
 export function sessionConsentPoints(required: boolean) {

@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { escapeHtml } from "../lib/security/email";
+import { escapeHtml, renderUserVerificationEmail } from "../lib/security/email";
 import { parseImageDataUrl } from "../lib/security/image";
 import { shouldPromptVerification } from "../lib/security/prompt";
 import { describeRequest, formatSecurityLocation, normalizeDeviceId } from "../lib/security/request";
@@ -62,6 +62,34 @@ describe("request context", () => {
 describe("escapeHtml", () => {
   it("neutralises markup in email fields", () => {
     expect(escapeHtml('<img src=x onerror="alert(1)">')).toBe("&lt;img src=x onerror=&quot;alert(1)&quot;&gt;");
+  });
+});
+
+describe("user verification email", () => {
+  const base = {
+    to: "user@example.com",
+    verifiedAt: "22 Oct 2026, 8:00 pm IST",
+    location: "Chennai, TN, IN",
+    browser: "Safari on macOS",
+    retentionDays: 30,
+    appUrl: "https://thoughtfully-ai.vercel.app",
+    supportEmail: "mail2shankarjun@gmail.com",
+  };
+
+  it("renders a branded confirmation with details and escaped user content", () => {
+    const { html, text } = renderUserVerificationEmail({ ...base, name: "<b>Ana</b>" });
+    expect(html).toContain("You&rsquo;re verified, &lt;b&gt;Ana&lt;/b&gt;");
+    expect(html).toContain("Chennai, TN, IN");
+    expect(html).toContain("Open Thoughtfully");
+    expect(html).not.toContain("<b>Ana</b>");
+    expect(text).toContain("Verification successful");
+    expect(text).toContain("Photo retention: 30 days");
+  });
+
+  it("never places an unsafe app URL into the button link", () => {
+    const { html } = renderUserVerificationEmail({ ...base, name: "Ana", appUrl: "javascript:alert(1)" });
+    expect(html).not.toContain("javascript:alert(1)");
+    expect(html).toContain("https://thoughtfully-ai.vercel.app");
   });
 });
 
