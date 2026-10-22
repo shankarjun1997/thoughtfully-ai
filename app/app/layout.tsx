@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getBillingState } from "@/lib/billing/state";
+import { isSecurityAdmin } from "@/lib/security/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -11,7 +12,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!user) redirect("/login?next=/app");
 
   const state = await getBillingState(supabase, user);
-  if (state.requiresPayment) redirect("/subscribe?next=/app");
+  if (state.requiresPayment && !isSecurityAdmin(user.email)) redirect("/subscribe?next=/app");
 
   return <>{children}</>;
 }

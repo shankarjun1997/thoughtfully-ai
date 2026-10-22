@@ -112,6 +112,7 @@ Before using this with real users, confirm your privacy policy discloses the cap
 
 - Every new account gets a **7-day free trial** from `auth.users.created_at`.
 - After the trial, `/app` redirects to `/subscribe`. The plan is a **one-time ₹200 payment for 365 days** through Razorpay Checkout (Orders API), with no auto-renewal.
+- Addresses in `SECURITY_ADMIN_EMAILS` (or `SECURITY_ALERT_EMAIL`) bypass the subscription gate so the owner can always operate the deployment.
 - `POST /api/billing/order` creates the order; `POST /api/billing/verify` validates the payment signature, confirms the order belongs to the signed-in user, and activates the year; `POST /api/billing/webhook` is the signed backup path.
 - Billing is **disabled when Razorpay keys are absent**: users are not blocked, `/subscribe` explains that payments are not configured, and no charges can be created.
 - Apply `supabase/migrations/202610220002_subscriptions.sql` before enabling keys. Subscription writes use the service-role key, so `SUPABASE_SECRET_KEY` (or `SUPABASE_SERVICE_ROLE_KEY`) is required.
