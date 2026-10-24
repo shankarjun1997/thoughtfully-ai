@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2732 2732">
+  <defs>
+    <linearGradient id="bg" x1="320" y1="120" x2="2400" y2="2600" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2F3D2A"/>
+      <stop offset="1" stop-color="#1C2619"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="translate(760 560) rotate(45) scale(2500)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity=".09"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="gold" cx=".34" cy=".28" r=".82">
+      <stop stop-color="#EFD5AC"/>
+      <stop offset=".55" stop-color="#D8AC77"/>
+      <stop offset="1" stop-color="#C08F58"/>
+    </radialGradient>
+    <g id="petals" fill="#F8F2E3">
+      <ellipse cx="0" cy="-94" rx="47" ry="94"/>
+      <ellipse cx="0" cy="-94" rx="47" ry="94" transform="rotate(60)"/>
+      <ellipse cx="0" cy="-94" rx="47" ry="94" transform="rotate(120)"/>
+      <ellipse cx="0" cy="-94" rx="47" ry="94" transform="rotate(180)"/>
+      <ellipse cx="0" cy="-94" rx="47" ry="94" transform="rotate(240)"/>
+      <ellipse cx="0" cy="-94" rx="47" ry="94" transform="rotate(300)"/>
+    </g>
+  </defs>
+
+  <rect width="2732" height="2732" fill="url(#bg)"/>
+  <rect width="2732" height="2732" fill="url(#glow)"/>
+
+  <g transform="translate(1366 1170) scale(2.05)">
+    <use href="#petals"/>
+    <circle r="48" fill="url(#gold)"/>
+    <path d="M138 -174l8 22 22 8-22 8-8 22-8-22-22-8 22-8z" fill="#EDD4A8" opacity=".85"/>
+  </g>
+
+  <text x="1366" y="1760" text-anchor="middle" fill="#F8F2E3" font-family="Georgia, 'Times New Roman', serif" font-size="156" letter-spacing="-5">thoughtfully</text>
+  <text x="1366" y="1870" text-anchor="middle" fill="#D8AC77" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700" letter-spacing="18">AI</text>
+  <text x="1366" y="2000" text-anchor="middle" fill="#E6D6B8" font-family="Arial, Helvetica, sans-serif" font-size="30" letter-spacing="11">MAKE EVERY MOMENT MATTER</text>
+</svg>

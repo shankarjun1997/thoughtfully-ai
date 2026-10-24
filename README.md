@@ -35,6 +35,23 @@ npm run dev
 
 Open http://localhost:3000. Without `LLM_API_KEY`, the list-review screen will fall back to a visibly labelled local rules preview.
 
+## Brand assets and app icons
+
+The mark is a six-petal marigold with a warm gold centre and a small spark, drawn on a sage tile.
+
+- `resources/` holds the vector sources and generated Capacitor assets: `icon.png`, `icon-only.png`, `icon-foreground.png` (safe-zone transparent mark), `icon-background.png`, `splash.png`, `splash-dark.png`.
+- `npm run icons` regenerates everything with `sharp`: web favicon (`app/favicon.ico`), `app/icon.svg`, `app/apple-icon.png`, `public/icon-192.png`, `public/icon-512.png`, `public/icon-maskable-512.png`, `public/apple-touch-icon.png`, `public/favicon-32.png`, plus the Capacitor resources and `public/logo-mark.svg`.
+- The web manifest uses the rounded icon for `any` and the full-bleed icon for `maskable`.
+- For a Capacitor wrapper, install the Capacitor asset generator and run it from the repo root:
+
+```bash
+npm i -D @capacitor/assets
+npx capacitor-assets generate --android --ios \
+  --iconBackgroundColor '#4c6044' --splashBackgroundColor '#4c6044'
+```
+
+Android uses `icon-foreground.png` + `icon-background.png` for the adaptive icon; iOS uses `icon.png`. The splash art is centred so it still works when Android 12+ crops it.
+
 ## Environment variables
 
 | Variable | Required | Purpose |
